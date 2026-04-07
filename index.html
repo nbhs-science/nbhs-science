@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NBHS Science Department PLC Dashboard</title>
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #F4F4F4; color: #1A1A1A; min-height: 100vh; }
+  a { color: inherit; }
+
+  /* ===== SIDEBAR ===== */
+  #sidebar {
+    position: fixed; top: 0; left: 0; width: 210px; height: 100vh;
+    background: #1A1A1A; color: #fff; display: flex; flex-direction: column;
+    z-index: 100; overflow-y: auto;
+  }
+  #sidebar .brand { padding: 14px 16px 10px; border-bottom: 1px solid #333; }
+  #sidebar .brand .school { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #aaa; }
+  #sidebar .brand .dept { font-size: 15px; font-weight: 900; color: #fff; font-family: 'Segoe UI', Arial, sans-serif; }
+  #sidebar .brand .sub { font-size: 10px; color: #888; margin-top: 2px; }
+  #sidebar nav { flex: 1; padding: 8px 0; }
+  #sidebar nav button {
+    display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 16px;
+    background: none; border: none; color: #ccc; font-size: 12px; font-weight: 600;
+    cursor: pointer; text-align: left; transition: background 0.15s, color 0.15s;
+    letter-spacing: 0.3px;
+  }
+  #sidebar nav button:hover { background: #2a2a2a; color: #fff; }
+  #sidebar nav button.active { background: #B30000; color: #fff; }
+  #sidebar nav button .nav-icon { width: 16px; height: 16px; flex-shrink: 0; }
+  #sidebar .footer { padding: 12px 16px; border-top: 1px solid #333; font-size: 10px; color: #666; }
+
+  /* ===== MAIN CONTENT ===== */
+  #main { margin-left: 210px; min-height: 100vh; }
+
+  /* ===== PAGES ===== */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ===== HOME PAGE ===== */
+  .hero {
+    position: relative; background: #1A1A1A; color: #fff;
+    padding: 60px 48px 48px; overflow: hidden; min-height: 280px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, #1A1A1A 0%, #2d1a1a 40%, #1A1A1A 100%);
+    opacity: 0.95;
+  }
+  .hero-content { position: relative; z-index: 1; }
+  .hero-badge {
+    display: inline-block; background: #B30000; color: #fff;
+    font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+    padding: 4px 10px; margin-bottom: 12px;
+  }
+  .hero h1 { font-size: 36px; font-weight: 900; line-height: 1.1; margin-bottom: 8px; }
+  .hero .subtitle { font-size: 14px; color: #aaa; }
+
+  .home-content { padding: 32px 48px; }
+  .section-title { font-size: 18px; font-weight: 900; margin-bottom: 16px; color: #1A1A1A; }
+  .welcome-text { font-size: 14px; line-height: 1.7; color: #444; margin-bottom: 12px; }
+
+  .priority-box {
+    background: #1A1A1A; color: #fff; padding: 24px 28px; margin: 24px 0;
+    border-left: 4px solid #B30000;
+  }
+  .priority-box .label { font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #B30000; margin-bottom: 10px; }
+  .priority-box p { font-size: 13px; line-height: 1.7; color: #ccc; }
+  .priority-box strong { color: #fff; }
+
+  .arc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 20px; }
+  .arc-card { background: #fff; border: 1px solid #E8E8E8; padding: 20px; }
+  .arc-card .arc-date { font-size: 10px; font-weight: 800; letter-spacing: 1px; color: #B30000; text-transform: uppercase; margin-bottom: 6px; }
+  .arc-card .arc-title { font-size: 14px; font-weight: 800; margin-bottom: 6px; }
+  .arc-card .arc-desc { font-size: 12px; color: #666; line-height: 1.5; }
+
+  /* ===== PLC SESSIONS ===== */
+  .plc-layout { display: flex; height: calc(100vh - 0px); }
+  .plc-sidebar { width: 260px; flex-shrink: 0; background: #fff; border-right: 1px solid #E8E8E8; overflow-y: auto; }
+  .plc-sidebar .month-header { padding: 8px 12px; font-size: 9px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; background: #1A1A1A; color: #888; border-bottom: 1px solid #333; }
+  .plc-sidebar .session-item { padding: 12px 14px; border-bottom: 1px solid #F0F0F0; cursor: pointer; transition: background 0.1s; }
+  .plc-sidebar .session-item:hover { background: #F9F9F9; }
+  .plc-sidebar .session-item.active { background: #FFF0F0; border-left: 3px solid #B30000; }
+  .plc-sidebar .session-item .s-status { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
+  .plc-sidebar .session-item .s-status.completed { color: #155724; }
+  .plc-sidebar .session-item .s-status.today { color: #856404; }
+  .plc-sidebar .session-item .s-status.upcoming { color: #0C5460; }
+  .plc-sidebar .session-item .s-date { font-size: 10px; color: #888; margin-bottom: 3px; }
+  .plc-sidebar .session-item .s-title { font-size: 12px; font-weight: 700; color: #1A1A1A; line-height: 1.3; }
+  .plc-sidebar .session-item .s-sub { font-size: 10px; color: #999; margin-top: 2px; }
+
+  .plc-detail { flex: 1; overflow-y: auto; padding: 28px 36px; }
+  .plc-detail h2 { font-size: 22px; font-weight: 900; margin-bottom: 6px; line-height: 1.2; }
+  .plc-detail .detail-sub { font-size: 13px; color: #666; margin-bottom: 16px; }
+  .plc-meta { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #E8E8E8; }
+  .plc-meta .meta-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #555; }
+  .plc-meta .meta-item strong { color: #1A1A1A; }
+
+  .detail-tabs { display: flex; border-bottom: 2px solid #E8E8E8; margin-bottom: 20px; }
+  .detail-tabs button { padding: 8px 16px; font-size: 12px; font-weight: 700; background: none; border: none; cursor: pointer; color: #888; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color 0.15s; }
+  .detail-tabs button.active { color: #B30000; border-bottom-color: #B30000; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .objectives-box { background: #FFF8F8; border: 1px solid #FFD0D0; padding: 16px 20px; margin-bottom: 16px; }
+  .objectives-box .obj-label { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #B30000; margin-bottom: 10px; }
+  .objectives-box ul { list-style: none; }
+  .objectives-box ul li { font-size: 13px; color: #333; padding: 4px 0 4px 16px; position: relative; line-height: 1.5; }
+  .objectives-box ul li::before { content: '•'; position: absolute; left: 0; color: #B30000; }
+
+  .bring-box { background: #F9F9F9; border: 1px solid #E8E8E8; padding: 16px 20px; margin-bottom: 20px; }
+  .bring-box .bring-label { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #555; margin-bottom: 10px; }
+  .bring-box ul { list-style: none; }
+  .bring-box ul li { font-size: 13px; color: #444; padding: 3px 0 3px 16px; position: relative; }
+  .bring-box ul li::before { content: '▸'; position: absolute; left: 0; color: #888; font-size: 10px; top: 5px; }
+
+  .agenda-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .agenda-table th { background: #1A1A1A; color: #fff; padding: 10px 12px; text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .agenda-table td { padding: 10px 12px; border-bottom: 1px solid #F0F0F0; vertical-align: top; }
+  .agenda-table tr:last-child td { border-bottom: none; }
+  .agenda-table .time-col { font-weight: 700; color: #B30000; white-space: nowrap; }
+  .agenda-table .dur-col { color: #888; white-space: nowrap; }
+  .agenda-table .act-title { font-weight: 700; margin-bottom: 3px; }
+  .agenda-table .act-desc { color: #666; font-size: 12px; line-height: 1.4; }
+  .agenda-table .total-row td { background: #1A1A1A; color: #fff; font-weight: 700; font-size: 12px; }
+
+  .slides-download { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .dl-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 16px; background: #1A1A1A; color: #fff;
+    text-decoration: none; font-size: 12px; font-weight: 700;
+    transition: background 0.15s;
+  }
+  .dl-btn:hover { background: #B30000; }
+  .dl-btn.secondary { background: #F4F4F4; color: #1A1A1A; }
+  .dl-btn.secondary:hover { background: #E0E0E0; }
+
+  .session-info-text { font-size: 13px; line-height: 1.7; color: #444; }
+  .session-info-text h4 { font-size: 14px; font-weight: 800; margin: 16px 0 6px; color: #1A1A1A; }
+  .session-info-text ul { margin-left: 20px; margin-bottom: 12px; }
+  .session-info-text ul li { margin-bottom: 4px; }
+
+  .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+  .status-badge.completed { background: #D4EDDA; color: #155724; }
+  .status-badge.today { background: #FFF3CD; color: #856404; }
+  .status-badge.upcoming { background: #D1ECF1; color: #0C5460; }
+  .status-badge.holiday { background: #F4F4F4; color: #888; }
+
+  /* ===== TEACHER DIRECTORY ===== */
+  .dir-header { padding: 20px 28px; border-bottom: 1px solid #E8E8E8; background: #FAFAFA; }
+  .dir-header h2 { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+  .dir-header p { font-size: 13px; color: #666; }
+  .dir-search { padding: 14px 28px; border-bottom: 1px solid #E8E8E8; }
+  .dir-search input { width: 100%; max-width: 400px; padding: 8px 14px; border: 1px solid #DDD; font-size: 13px; outline: none; }
+  .dir-search input:focus { border-color: #B30000; }
+  .teacher-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1px; background: #E8E8E8; padding: 1px; }
+  .teacher-card { background: #fff; padding: 16px; }
+  .teacher-card .tc-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .teacher-card .tc-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; color: #fff; flex-shrink: 0; }
+  .teacher-card .tc-name { font-size: 14px; font-weight: 800; }
+  .teacher-card .tc-info { font-size: 11px; color: #888; }
+  .teacher-card .tc-courses-label { font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #888; margin-bottom: 6px; }
+  .course-tag { display: inline-block; padding: 2px 8px; font-size: 10px; font-weight: 700; margin: 2px 2px 2px 0; border-radius: 2px; }
+
+  /* ===== COURSE PATHWAY ===== */
+  .pathway-header { padding: 20px 28px; border-bottom: 1px solid #E8E8E8; background: #FAFAFA; }
+  .pathway-header h2 { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+  .pathway-header p { font-size: 13px; color: #666; }
+  .pathway-table-wrap { overflow-x: auto; padding: 20px 28px; }
+  .pathway-table { border-collapse: collapse; min-width: 700px; width: 100%; font-size: 12px; }
+  .pathway-table th { background: #1A1A1A; color: #fff; padding: 10px 14px; text-align: center; font-size: 11px; font-weight: 800; }
+  .pathway-table th .pw-sub { font-size: 9px; font-weight: 500; color: #aaa; margin-top: 2px; }
+  .pathway-table td { padding: 10px 14px; border: 1px solid #E8E8E8; vertical-align: top; }
+  .pathway-table .grade-cell { background: #1A1A1A; color: #fff; font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; writing-mode: vertical-rl; text-orientation: mixed; text-align: center; padding: 14px 8px; }
+  .pathway-table .course-item { margin-bottom: 4px; font-weight: 700; color: #1A1A1A; }
+  .pathway-table .course-note { font-size: 10px; color: #888; font-style: italic; margin-top: 2px; }
+  .pathway-table .pathway1 { background: #F0F4FF; }
+  .pathway-table .pathway2 { background: #F0FFF4; }
+  .pathway-table .pathway3 { background: #FFF8F0; }
+  .pathway-table .pathway4 { background: #F5F0FF; }
+  .pathway-table .pathway5 { background: #FFF0F0; }
+
+  /* ===== DEPARTMENT PD ===== */
+  .pd-layout { display: flex; }
+  .pd-list { width: 300px; flex-shrink: 0; border-right: 1px solid #E8E8E8; overflow-y: auto; background: #fff; }
+  .pd-list-header { padding: 16px 20px; border-bottom: 1px solid #E8E8E8; background: #FAFAFA; }
+  .pd-list-header h2 { font-size: 18px; font-weight: 900; }
+  .pd-list-header p { font-size: 12px; color: #888; }
+  .pd-item { padding: 14px 18px; border-bottom: 1px solid #F0F0F0; cursor: pointer; transition: background 0.1s; }
+  .pd-item:hover { background: #F9F9F9; }
+  .pd-item.active { background: #FFF0F0; border-left: 3px solid #B30000; }
+  .pd-item .pd-date { font-size: 10px; color: #888; margin-bottom: 3px; }
+  .pd-item .pd-title { font-size: 13px; font-weight: 700; line-height: 1.3; }
+  .pd-detail { flex: 1; padding: 28px 36px; overflow-y: auto; }
+  .pd-detail h2 { font-size: 20px; font-weight: 900; margin-bottom: 8px; line-height: 1.3; }
+  .pd-detail .pd-overview-label { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #B30000; margin-bottom: 10px; margin-top: 16px; }
+  .pd-detail .pd-overview-text { font-size: 13px; line-height: 1.7; color: #444; }
+
+  /* ===== NEWSLETTERS ===== */
+  .nl-header { padding: 20px 28px; border-bottom: 1px solid #E8E8E8; background: #FAFAFA; }
+  .nl-header h2 { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+  .nl-header p { font-size: 13px; color: #666; }
+  .nl-season { font-size: 9px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; padding: 8px 20px; background: #1A1A1A; color: rgba(255,255,255,0.7); border-bottom: 1px solid #333; }
+  .nl-item { display: flex; align-items: center; gap: 14px; padding: 12px 20px; border-bottom: 1px solid #EBEBEB; text-decoration: none; color: inherit; transition: background 0.1s; }
+  .nl-item:hover { background: #F9F9F9; }
+  .nl-item:nth-child(even) { background: #F9F9F9; }
+  .nl-item:nth-child(even):hover { background: #F0F0F0; }
+  .nl-icon { width: 32px; height: 32px; background: #B30000; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .nl-icon svg { width: 15px; height: 15px; }
+  .nl-text { flex: 1; }
+  .nl-text .nl-date { font-size: 13px; font-weight: 700; }
+  .nl-text .nl-sub { font-size: 11px; color: #888; margin-top: 2px; }
+  .nl-dl { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: #1A1A1A; color: #fff; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* ===== CURRICULUM ===== */
+  .curr-header { padding: 20px 28px; border-bottom: 1px solid #E8E8E8; background: #FAFAFA; }
+  .curr-header h2 { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+  .curr-header p { font-size: 13px; color: #666; }
+  .curr-tabs { display: flex; border-bottom: 2px solid #E8E8E8; padding: 0 28px; background: #fff; }
+  .curr-tabs button { padding: 12px 16px; font-size: 12px; font-weight: 800; background: none; border: none; cursor: pointer; color: #888; border-bottom: 2px solid transparent; margin-bottom: -2px; letter-spacing: 0.5px; transition: color 0.15s; }
+  .curr-tabs button.active { color: #B30000; border-bottom-color: #B30000; }
+  .curr-content { padding: 28px; }
+  .pacing-title { font-size: 20px; font-weight: 900; margin-bottom: 4px; }
+  .pacing-sub { font-size: 13px; color: #666; margin-bottom: 8px; }
+  .mcas-notice { display: inline-flex; align-items: center; gap: 6px; background: #FFF3CD; color: #856404; padding: 5px 12px; font-size: 11px; font-weight: 700; margin-bottom: 20px; }
+  .unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 28px; }
+  .unit-card { padding: 16px; color: #fff; }
+  .unit-card .unit-id { font-size: 10px; font-weight: 800; letter-spacing: 1px; opacity: 0.8; margin-bottom: 4px; }
+  .unit-card .unit-lessons { font-size: 10px; font-weight: 700; opacity: 0.8; float: right; }
+  .unit-card .unit-name { font-size: 14px; font-weight: 900; margin-bottom: 6px; line-height: 1.2; }
+  .unit-card .unit-dq { font-size: 11px; font-style: italic; opacity: 0.85; line-height: 1.4; margin-bottom: 6px; }
+  .unit-card .unit-dates { font-size: 10px; opacity: 0.75; }
+  .ose-links { margin-top: 20px; }
+  .ose-links h4 { font-size: 13px; font-weight: 800; margin-bottom: 10px; }
+  .ose-link-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border: 1px solid #E8E8E8; margin-bottom: 6px; text-decoration: none; color: inherit; transition: background 0.1s; }
+  .ose-link-item:hover { background: #F9F9F9; }
+  .ose-link-item .ose-title { font-size: 13px; font-weight: 700; }
+  .ose-link-item .ose-dq { font-size: 11px; color: #666; margin-top: 2px; }
+
+  /* ===== LAB SAFETY ===== */
+  .lab-hero { background: #1A1A1A; color: #fff; padding: 28px 36px; display: flex; align-items: center; gap: 16px; }
+  .lab-hero .lab-icon { width: 48px; height: 48px; background: #B30000; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .lab-hero h2 { font-size: 24px; font-weight: 900; }
+  .lab-hero p { font-size: 13px; color: #aaa; margin-top: 4px; line-height: 1.5; }
+  .lab-refs { padding: 16px 36px; border-bottom: 1px solid #E8E8E8; }
+  .lab-refs .refs-label { font-size: 9px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #888; margin-bottom: 10px; }
+  .lab-refs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+  .lab-ref-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1px solid #E8E8E8; text-decoration: none; color: inherit; transition: background 0.1s; }
+  .lab-ref-item:hover { background: #F9F9F9; }
+  .lab-ref-item .ref-icon { width: 28px; height: 28px; background: #F4F4F4; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .lab-ref-item .ref-title { font-size: 12px; font-weight: 700; }
+  .lab-ref-item .ref-sub { font-size: 10px; color: #888; }
+  .lab-warning { margin: 0 36px 20px; background: #FFF3CD; border-left: 4px solid #856404; padding: 12px 16px; font-size: 13px; font-weight: 700; color: #856404; }
+  .lab-rules { padding: 0 36px 36px; }
+  .lab-rules-label { font-size: 9px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: #888; margin-bottom: 16px; }
+  .lab-rule { display: flex; gap: 16px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #F0F0F0; }
+  .lab-rule:last-child { border-bottom: none; }
+  .lab-rule .rule-num { width: 32px; height: 32px; background: #B30000; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; flex-shrink: 0; }
+  .lab-rule .rule-body .rule-title { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+  .lab-rule .rule-body .rule-badge { display: inline-block; padding: 2px 8px; font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; background: #1A1A1A; color: #fff; margin-bottom: 8px; }
+  .lab-rule .rule-body p { font-size: 13px; color: #444; line-height: 1.6; }
+  .lab-rule .rule-body .rule-links { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .lab-rule .rule-body .rule-link { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #F4F4F4; font-size: 11px; font-weight: 700; text-decoration: none; color: #1A1A1A; transition: background 0.1s; }
+  .lab-rule .rule-body .rule-link:hover { background: #1A1A1A; color: #fff; }
+  .lab-source { margin: 0 36px 36px; background: #1A1A1A; padding: 16px 20px; font-size: 12px; color: #aaa; line-height: 1.6; }
+  .lab-source a { color: #B30000; font-weight: 700; }
+
+  /* ===== MCAS ===== */
+  .mcas-header { padding: 20px 28px; border-bottom: 1px solid #E8E8E8; background: #FAFAFA; }
+  .mcas-header h2 { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+  .mcas-header p { font-size: 13px; color: #666; }
+  .mcas-tabs { display: flex; border-bottom: 2px solid #E8E8E8; padding: 0 28px; background: #fff; }
+  .mcas-tabs button { padding: 12px 16px; font-size: 12px; font-weight: 800; background: none; border: none; cursor: pointer; color: #888; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color 0.15s; }
+  .mcas-tabs button.active { color: #B30000; border-bottom-color: #B30000; }
+  .mcas-content { padding: 28px; }
+  .mcas-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .mcas-table th { background: #1A1A1A; color: #fff; padding: 10px 12px; text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .mcas-table td { padding: 10px 12px; border-bottom: 1px solid #F0F0F0; }
+  .mcas-table tr:hover td { background: #F9F9F9; }
+  .priority-critical { color: #B30000; font-weight: 800; }
+  .priority-watch { color: #856404; font-weight: 800; }
+  .priority-strength { color: #155724; font-weight: 800; }
+  .priority-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+  .dot-critical { background: #B30000; }
+  .dot-watch { background: #856404; }
+  .dot-strength { background: #155724; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    #sidebar { width: 100%; height: auto; position: relative; }
+    #main { margin-left: 0; }
+    #sidebar nav { display: flex; flex-wrap: wrap; }
+    #sidebar nav button { width: auto; flex: 1; min-width: 80px; padding: 8px 10px; font-size: 10px; }
+    .plc-layout, .pd-layout { flex-direction: column; }
+    .plc-sidebar, .pd-list { width: 100%; height: auto; max-height: 200px; }
+    .home-content { padding: 20px; }
+    .hero { padding: 30px 20px 24px; }
+    .hero h1 { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="brand">
+    <div class="school">New Bedford High School</div>
+    <div class="dept">Science Department</div>
+    <div class="sub">Department Dashboard</div>
+  </div>
+  <nav>
+    <button class="active" onclick="showPage('home')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Department Home
+    </button>
+    <button onclick="showPage('plc')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      PLC Sessions
+    </button>
+    <button onclick="showPage('teachers')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Teacher Directory
+    </button>
+    <button onclick="showPage('pathway')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+      Course Pathway
+    </button>
+    <button onclick="showPage('deptpd')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+      Department PD
+    </button>
+    <button onclick="showPage('newsletters')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+      Newsletters
+    </button>
+    <button onclick="showPage('curriculum')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+      Curriculum
+    </button>
+    <button onclick="showPage('labsafety')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      Lab Safety
+    </button>
+    <button onclick="showPage('mcas')">
+      <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      MCAS
+    </button>
+  </nav>
+  <div class="footer">14 sessions · 2025–26 School Year</div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="main">
+
+  <!-- ===== HOME PAGE ===== -->
+  <div id="page-home" class="page active">
+    <div class="hero">
+      <div class="hero-bg"></div>
+      <div class="hero-content">
+        <div class="hero-badge">New Bedford High School</div>
+        <h1>NBHS Science Department</h1>
+        <div class="subtitle">Grades 9–12 · Science Department</div>
+      </div>
+    </div>
+    <div class="home-content">
+      <h3 class="section-title">Welcome to the Department Hub</h3>
+      <p class="welcome-text">Welcome to the NBHS Science Department dashboard — the shared space where our team plans together, tracks our professional learning, and keeps our collective work visible. Whether you are preparing for a PLC session, looking for instructional resources, or checking in on our department's progress, this is your home base.</p>
+      <p class="welcome-text">Our department serves students in grades 9 through 12 across a wide range of science courses. We are a team committed to high-quality science instruction grounded in the NGSS and Massachusetts state standards — and to the belief that when teachers learn together, students learn more deeply.</p>
+      <p class="welcome-text">This year, our PLC work is centered on building the instructional practices that make the biggest difference for our students: rigorous questioning, structured academic discourse, evidence-based writing, and hands-on investigations of real scientific phenomena. The sessions in this dashboard reflect that arc — each one building on the last.</p>
+
+      <div class="priority-box">
+        <div class="label">2025–26 Department Priority</div>
+        <p>Throughout the school year, science teachers will administer quarterly standards-based benchmark assessments and consistently use high-quality instructional materials (HQIM) in lessons aligned to the NGSS and Massachusetts state science standards. By June 2026, at least <strong>65% of students will demonstrate proficiency</strong>, with an average growth of <strong>10% across benchmarks</strong>, as measured by standards-based assessments. To achieve this, science teachers will intentionally plan and facilitate academic discourse, evidence-based writing, and investigations of grade-level scientific phenomena so that <strong>multilingual learners within the WIDA proficiency band of 2.5–3.5</strong> demonstrate a deeper understanding of scientific concepts.</p>
+      </div>
+
+      <h3 class="section-title" style="margin-top:28px;">Our PLC Learning Arc — Spring 2026</h3>
+      <p class="welcome-text">This semester's PLC sessions follow a deliberate instructional arc — each session builds directly on the one before it. We start with the practices that drive student thinking, then examine the evidence those practices produce, and finally use that evidence to plan better lessons together.</p>
+      <div class="arc-grid">
+        <div class="arc-card">
+          <div class="arc-date">Mar 26–27</div>
+          <div class="arc-title">Questioning Strategies &amp; Academic Discourse</div>
+          <div class="arc-desc">Building the talk moves and questioning techniques that push student thinking deeper.</div>
+        </div>
+        <div class="arc-card">
+          <div class="arc-date">Mar 27</div>
+          <div class="arc-title">Lesson Internalization Protocol</div>
+          <div class="arc-desc">Practicing the OSE and DESE LIT frameworks to plan lessons with student thinking in mind.</div>
+        </div>
+        <div class="arc-card">
+          <div class="arc-date">Mar 31 – Apr 1</div>
+          <div class="arc-title">Student Work Analysis</div>
+          <div class="arc-desc">Examining real student work to identify patterns, misconceptions, and next instructional steps.</div>
+        </div>
+        <div class="arc-card">
+          <div class="arc-date">Apr 3</div>
+          <div class="arc-title">Co-Planning with Discourse in Mind</div>
+          <div class="arc-desc">Using evidence from student work to plan the next lesson together as course-alike teams.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PLC SESSIONS PAGE ===== -->
+  <div id="page-plc" class="page">
+    <div class="plc-layout">
+      <div class="plc-sidebar" id="plc-sidebar-list"></div>
+      <div class="plc-detail" id="plc-detail-panel">
+        <p style="color:#888;font-size:13px;">Select a session from the list to view details.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TEACHER DIRECTORY PAGE ===== -->
+  <div id="page-teachers" class="page">
+    <div class="dir-header">
+      <h2>Teacher Directory</h2>
+      <p>2025–26 Science Department — 21 teachers</p>
+    </div>
+    <div class="dir-search">
+      <input type="text" id="teacher-search" placeholder="Search by name, room, or course..." oninput="filterTeachers(this.value)">
+    </div>
+    <div class="teacher-grid" id="teacher-grid"></div>
+  </div>
+
+  <!-- ===== COURSE PATHWAY PAGE ===== -->
+  <div id="page-pathway" class="page">
+    <div class="pathway-header">
+      <h2>Science Course Pathway</h2>
+      <p>NBHS 2025–26 · Grades 9–12 Science Course Progression</p>
+    </div>
+    <div class="pathway-table-wrap">
+      <table class="pathway-table">
+        <thead>
+          <tr>
+            <th style="width:60px;"></th>
+            <th class="pathway1">Pathway 1<div class="pw-sub">Honors and AP</div></th>
+            <th class="pathway2">Pathway 2<div class="pw-sub">Life Science</div></th>
+            <th class="pathway3">Pathway 3<div class="pw-sub">Physical Science</div></th>
+            <th class="pathway4">Pathway 4<div class="pw-sub">ELL / NC / SLIFE</div></th>
+            <th class="pathway5">Pathway 5<div class="pw-sub">SPED</div></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="grade-cell">Grade 9</td>
+            <td class="pathway1"><div class="course-item">Pre-AP Biology</div></td>
+            <td class="pathway2"><div class="course-item">Biology</div></td>
+            <td class="pathway3"><div class="course-item">Biology</div></td>
+            <td class="pathway4">
+              <div class="course-item">ELL – Biology</div>
+              <div class="course-item">SLIFE – Foundation of Science</div>
+              <div class="course-note">Take Foundation of Science first before Biology</div>
+              <div class="course-item">NC – Bio NC, then Environmental Sci NC</div>
+            </td>
+            <td class="pathway5"><div class="course-item">Biology</div></td>
+          </tr>
+          <tr>
+            <td class="grade-cell">Grade 10</td>
+            <td class="pathway1"><div class="course-item">Pre-AP Chemistry</div></td>
+            <td class="pathway2">
+              <div class="course-item">Chemistry or Environmental Sci</div>
+              <div class="course-note">Retake Biology if failed in Grade 9</div>
+            </td>
+            <td class="pathway3">
+              <div class="course-item">Chemistry or Environmental Sci</div>
+              <div class="course-note">Retake Biology if failed in Grade 9</div>
+            </td>
+            <td class="pathway4">
+              <div class="course-item">Chemistry or Environmental Sci</div>
+              <div class="course-note">Retake Biology if failed in Grade 9</div>
+            </td>
+            <td class="pathway5">
+              <div class="course-item">Chemistry or Environmental Sci</div>
+              <div class="course-note">Retake Biology if failed in Grade 9</div>
+            </td>
+          </tr>
+          <tr>
+            <td class="grade-cell">Grade 11</td>
+            <td class="pathway1">
+              <div class="course-item">Honors – Anatomy &amp; Physiology</div>
+              <div class="course-note">Innovation Pathway Marine Program</div>
+              <div class="course-item">Honors – Marine Science</div>
+              <div class="course-note">Innovation Pathway Marine Program</div>
+              <div class="course-item">AP Biology</div>
+              <div class="course-item">AP Chemistry</div>
+              <div class="course-item">AP Environmental Science</div>
+              <div class="course-item">AP Physics I</div>
+            </td>
+            <td class="pathway2">
+              <div class="course-note">Advanced students can switch to Pathway 1 and take Honors/AP Life Science courses</div>
+              <div class="course-item">Chemistry</div>
+              <div class="course-item">Environmental Science</div>
+              <div class="course-item">Marine Science</div>
+              <div class="course-item">Zoology (elective)</div>
+            </td>
+            <td class="pathway3">
+              <div class="course-note">Advanced students can switch to Pathway 1 and take Honors/AP courses/AP Physics</div>
+              <div class="course-item">Physics</div>
+            </td>
+            <td class="pathway4">
+              <div class="course-note">Advanced students can switch to Pathway 1 and take Honors/AP courses</div>
+              <div class="course-item">Environmental Science</div>
+              <div class="course-item">Zoology</div>
+            </td>
+            <td class="pathway5">
+              <div class="course-note">Advanced students can switch to Pathway 1 and take Honors/AP courses</div>
+              <div class="course-item">Chemistry (or Environmental Science)</div>
+            </td>
+          </tr>
+          <tr>
+            <td class="grade-cell">Grade 12</td>
+            <td class="pathway1">
+              <div class="course-note">Select Electives or take the following 1-year courses:</div>
+              <div class="course-item">AP Biology</div>
+              <div class="course-item">AP Chemistry</div>
+              <div class="course-item">AP Environmental Science</div>
+              <div class="course-item">Honors – Marine Science</div>
+            </td>
+            <td class="pathway2">
+              <div class="course-note">Select Electives — Choose from available science electives</div>
+              <div class="course-item">Forensics Lab Science</div>
+              <div class="course-item">Genetics</div>
+              <div class="course-item">Foundation in Biotechnology</div>
+              <div class="course-item">Zoology</div>
+            </td>
+            <td class="pathway3">
+              <div class="course-item">Earth &amp; Space</div>
+            </td>
+            <td class="pathway4">
+              <div class="course-item">Earth &amp; Space</div>
+              <div class="course-item">Environmental Science</div>
+              <div class="course-item">Zoology</div>
+            </td>
+            <td class="pathway5">
+              <div class="course-item">Environmental Science (if taken in Grade 11)</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== DEPARTMENT PD PAGE ===== -->
+  <div id="page-deptpd" class="page">
+    <div class="pd-layout">
+      <div class="pd-list">
+        <div class="pd-list-header">
+          <h2>Department PD</h2>
+          <p>2025–26 School Year · 7 sessions</p>
+        </div>
+        <div id="pd-list-items"></div>
+      </div>
+      <div class="pd-detail" id="pd-detail-panel">
+        <p style="color:#888;font-size:13px;">Select a session to view details.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== NEWSLETTERS PAGE ===== -->
+  <div id="page-newsletters" class="page">
+    <div class="nl-header">
+      <h2>Science Team Weekly Newsletters</h2>
+      <p>2025–26 School Year · 26 issues · Click any issue to download as PDF</p>
+    </div>
+    <div id="newsletters-list"></div>
+  </div>
+
+  <!-- ===== CURRICULUM PAGE ===== -->
+  <div id="page-curriculum" class="page">
+    <div class="curr-header">
+      <h2>Curriculum</h2>
+      <p>OpenSciEd High School Instructional Materials · 2025–26</p>
+    </div>
+    <div class="curr-tabs">
+      <button class="active" onclick="showCurrTab('biology')">BIOLOGY</button>
+      <button onclick="showCurrTab('chemistry')">CHEMISTRY</button>
+      <button onclick="showCurrTab('physics')">PHYSICS</button>
+      <button onclick="showCurrTab('preap-bio')">PRE-AP BIOLOGY</button>
+      <button onclick="showCurrTab('preap-chem')">PRE-AP CHEMISTRY</button>
+    </div>
+    <div class="curr-content">
+      <div id="curr-biology" class="curr-tab-content active">
+        <div class="pacing-title">Biology OSE Pacing Map</div>
+        <div class="pacing-sub">2025–26 · OpenSciEd Biology · 5 Units · 55 Lessons · 155 Instructional Days</div>
+        <div class="mcas-notice">⚠ MCAS Bio: Jun 2–3 · Last lesson by May 22</div>
+        <div class="unit-grid">
+          <div class="unit-card" style="background:#1A6B3C;">
+            <span class="unit-lessons">11 lessons</span>
+            <div class="unit-id">B1</div>
+            <div class="unit-name">B.1 Ecosystem Interactions &amp; Dynamics</div>
+            <div class="unit-dq">"How do ecosystems work, and how can understanding them help us protect them?"</div>
+            <div class="unit-dates">Aug 27 – Oct 14</div>
+          </div>
+          <div class="unit-card" style="background:#1A3A5C;">
+            <span class="unit-lessons">12 lessons</span>
+            <div class="unit-id">B2</div>
+            <div class="unit-name">B.2 Ecosystems Matter &amp; Energy</div>
+            <div class="unit-dq">"What causes fires in ecosystems to burn and how should we manage them?"</div>
+            <div class="unit-dates">Oct 15 – Dec 11</div>
+          </div>
+          <div class="unit-card" style="background:#6B1A5C;">
+            <span class="unit-lessons">12 lessons</span>
+            <div class="unit-id">B3</div>
+            <div class="unit-name">B.3 Inheritance &amp; Variation of Traits</div>
+            <div class="unit-dq">"Who gets cancer and why?"</div>
+            <div class="unit-dates">Dec 12 – Mar 4</div>
+          </div>
+          <div class="unit-card" style="background:#B5451B;">
+            <span class="unit-lessons">11 lessons</span>
+            <div class="unit-id">B4</div>
+            <div class="unit-name">B.4 Natural Selection &amp; Evolution</div>
+            <div class="unit-dq">"How does urbanization affect nonhuman populations, and how can we minimize harmful effects?"</div>
+            <div class="unit-dates">Mar 5 – Apr 29</div>
+          </div>
+          <div class="unit-card" style="background:#5C4A1A;">
+            <span class="unit-lessons">9 lessons</span>
+            <div class="unit-id">B5</div>
+            <div class="unit-name">B.5 Common Ancestry &amp; Speciation</div>
+            <div class="unit-dq">"What will happen to Arctic bear populations as their environment changes?"</div>
+            <div class="unit-dates">Apr 30 – May 22</div>
+          </div>
+        </div>
+        <div class="ose-links">
+          <h4>OpenSciEd Biology Units</h4>
+          <a class="ose-link-item" href="https://openscied.org/instructional-materials/b-1/" target="_blank">
+            <div><div class="ose-title">B.1 Ecosystem Interactions &amp; Dynamics</div><div class="ose-dq">How do ecosystems work, and how can understanding them help us protect them?</div></div>
+          </a>
+          <a class="ose-link-item" href="https://openscied.org/instructional-materials/b-2/" target="_blank">
+            <div><div class="ose-title">B.2 Ecosystems: Matter &amp; Energy</div><div class="ose-dq">What causes fires in ecosystems to burn, and how should we manage them?</div></div>
+          </a>
+          <a class="ose-link-item" href="https://openscied.org/instructional-materials/b-3/" target="_blank">
+            <div><div class="ose-title">B.3 Inheritance &amp; Variation of Traits</div><div class="ose-dq">Who gets cancer and why? What can we do about it?</div></div>
+          </a>
+          <a class="ose-link-item" href="https://openscied.org/instructional-materials/b-4/" target="_blank">
+            <div><div class="ose-title">B.4 Natural Selection &amp; Evolution of Populations</div><div class="ose-dq">How does urbanization affect nonhuman populations, and how do populations change over time?</div></div>
+          </a>
+          <a class="ose-link-item" href="https://openscied.org/instructional-materials/b-5/" target="_blank">
+            <div><div class="ose-title">B.5 Common Ancestry &amp; Speciation</div><div class="ose-dq">What will happen to Arctic bear populations as their environment changes?</div></div>
+          </a>
+        </div>
+      </div>
+      <div id="curr-chemistry" class="curr-tab-content" style="display:none;">
+        <div class="pacing-title">Chemistry OSE Pacing Map</div>
+        <div class="pacing-sub">2025–26 · OpenSciEd Chemistry · 5 Units</div>
+        <div class="unit-grid">
+          <div class="unit-card" style="background:#1A4E8A;"><div class="unit-id">C1</div><div class="unit-name">C.1 Matter &amp; Its Interactions</div></div>
+          <div class="unit-card" style="background:#2D6A4F;"><div class="unit-id">C2</div><div class="unit-name">C.2 Chemical Reactions</div></div>
+          <div class="unit-card" style="background:#6B3A7D;"><div class="unit-id">C3</div><div class="unit-name">C.3 Energy in Chemical Processes</div></div>
+          <div class="unit-card" style="background:#B5451B;"><div class="unit-id">C4</div><div class="unit-name">C.4 Acids, Bases &amp; Solutions</div></div>
+          <div class="unit-card" style="background:#5C4A1A;"><div class="unit-id">C5</div><div class="unit-name">C.5 Nuclear Chemistry</div></div>
+        </div>
+        <div class="ose-links">
+          <h4>OpenSciEd Chemistry Units</h4>
+          <a class="ose-link-item" href="https://openscied.org/instructional-materials/c-1/" target="_blank"><div><div class="ose-title">C.1 Matter &amp; Its Interactions</div></div></a>
+          <a class="ose-link-item" href="https://openscied.org/instructional-materials/c-2/" target="_blank"><div><div class="ose-title">C.2 Chemical Reactions</div></div></a>
+          <a class="ose-link-item" href="https://openscied.org/instructional-materials/c-3/" target="_blank"><div><div class="ose-title">C.3 Energy in Chemical Processes</div></div></a>
+          <a class="ose-link-item" href="https://openscied.org/instructional-materials/c-4/" target="_blank"><div><div class="ose-title">C.4 Acids, Bases &amp; Solutions</div></div></a>
+          <a class="ose-link-item" href="https://openscied.org/instructional-materials/c-5/" target="_blank"><div><div class="ose-title">C.5 Nuclear Chemistry</div></div></a>
+        </div>
+      </div>
+      <div id="curr-physics" class="curr-tab-content" style="display:none;">
+        <div class="pacing-title">Physics OSE Pacing Map</div>
+        <div class="pacing-sub">2025–26 · OpenSciEd Physics · 6 Units</div>
+        <div class="unit-grid">
+          <div class="unit-card" style="background:#1A3A5C;"><div class="unit-id">P1</div><div class="unit-name">P.1 Forces &amp; Motion</div></div>
+          <div class="unit-card" style="background:#1A6B3C;"><div class="unit-id">P2</div><div class="unit-name">P.2 Energy</div></div>
+          <div class="unit-card" style="background:#6B1A5C;"><div class="unit-id">P3</div><div class="unit-name">P.3 Waves &amp; Electromagnetic Radiation</div></div>
+          <div class="unit-card" style="background:#B5451B;"><div class="unit-id">P4</div><div class="unit-name">P.4 Electricity &amp; Magnetism</div></div>
+          <div class="unit-card" style="background:#5C4A1A;"><div class="unit-id">P5</div><div class="unit-name">P.5 Nuclear Physics</div></div>
+          <div class="unit-card" style="background:#1A4E8A;"><div class="unit-id">P6</div><div class="unit-name">P.6 Astronomy</div></div>
+        </div>
+        <div class="ose-links">
+          <h4>OpenSciEd Physics Units</h4>
+          <a class="ose-link-item" href="https://openscied.org/instructional-materials/p-1/" target="_blank"><div><div class="ose-title">P.1 Forces &amp; Motion</div></div></a>
+          <a class="ose-link-item" href="https://openscied.org/instructional-materials/p-2/" target="_blank"><div><div class="ose-title">P.2 Energy</div></div></a>
+          <a class="ose-link-item" href="https://openscied.org/instructional-materials/p-3/" target="_blank"><div><div class="ose-title">P.3 Waves &amp; Electromagnetic Radiation</div></div></a>
+          <a class="ose-link-item" href="https://openscied.org/instructional-materials/p-4/" target="_blank"><div><div class="ose-title">P.4 Electricity &amp; Magnetism</div></div></a>
+          <a class="ose-link-item" href="https://openscied.org/instructional-materials/p-5/" target="_blank"><div><div class="ose-title">P.5 Nuclear Physics</div></div></a>
+          <a class="ose-link-item" href="https://openscied.org/instructional-materials/p-6/" target="_blank"><div><div class="ose-title">P.6 Astronomy</div></div></a>
+        </div>
+      </div>
+      <div id="curr-preap-bio" class="curr-tab-content" style="display:none;">
+        <div class="pacing-title">Pre-AP Biology</div>
+        <div class="pacing-sub">2025–26 · College Board Pre-AP Biology</div>
+        <div style="margin-top:16px;">
+          <a class="dl-btn" href="https://d2xsxph8kpxj0f.cloudfront.net/310519663412359612/DMvDiCYoCpTAKstdhKxsmm/Pre-APBioCourseGuide_24482b3c.pdf" target="_blank">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Download Pre-AP Biology Course Guide (PDF)
+          </a>
+        </div>
+      </div>
+      <div id="curr-preap-chem" class="curr-tab-content" style="display:none;">
+        <div class="pacing-title">Pre-AP Chemistry</div>
+        <div class="pacing-sub">2025–26 · College Board Pre-AP Chemistry</div>
+        <div style="margin-top:16px;">
+          <a class="dl-btn" href="https://d2xsxph8kpxj0f.cloudfront.net/310519663412359612/DMvDiCYoCpTAKstdhKxsmm/pre-ap-chemistry-cg-wr_cd39334f.pdf" target="_blank">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Download Pre-AP Chemistry Course Guide (PDF)
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LAB SAFETY PAGE ===== -->
+  <div id="page-labsafety" class="page">
+    <div class="lab-hero">
+      <div class="lab-icon">
+        <svg width="24" height="24" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      </div>
+      <div>
+        <h2>Laboratory Safety Guidelines</h2>
+        <p>The NBHS Science Department is committed to ensuring the safety of all students and staff during laboratory activities involving chemical and biological materials. Our safety protocol adheres to the guidelines outlined in the DESE's Safety &amp; Practices and Legal Requirements document.</p>
+      </div>
+    </div>
+    <div class="lab-refs">
+      <div class="refs-label">Governing Standards &amp; References</div>
+      <div class="lab-refs-grid">
+        <a class="lab-ref-item" href="https://www.doe.mass.edu/frameworks/scitech/2016-04.pdf" target="_blank">
+          <div class="ref-icon"><svg width="14" height="14" fill="none" stroke="#B30000" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+          <div><div class="ref-title">DESE Safety &amp; Practices — Appendix XI</div><div class="ref-sub">MA DESE Science Framework · PDF</div></div>
+        </a>
+        <a class="lab-ref-item" href="https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.1450" target="_blank">
+          <div class="ref-icon"><svg width="14" height="14" fill="none" stroke="#B30000" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg></div>
+          <div><div class="ref-title">OSHA Laboratory Standard — 29 CFR 1910.1450</div><div class="ref-sub">Federal OSHA Hazardous Chemicals Standard</div></div>
+        </a>
+      </div>
+    </div>
+    <div class="lab-warning">⚠ All lab activities require a signed Lab Safety Agreement on file before students may participate. See Rule 4 below.</div>
+    <div class="lab-rules">
+      <div class="lab-rules-label">Safety Rules &amp; Protocols — 7 Items</div>
+      <div class="lab-rule">
+        <div class="rule-num">1</div>
+        <div class="rule-body">
+          <div class="rule-title">Storage and Documentation of Hazardous Chemicals</div>
+          <span class="rule-badge">Room B370</span>
+          <p>Hazardous chemicals at NBHS are securely stored and locked in Room B370. A comprehensive Material Safety Data Sheet (MSDS) binder is maintained to document all chemicals (physical copy available for review). Science teachers may access these chemicals for classroom experiments with prior notice, and unused hazardous chemicals must be returned to Room B370 after use.</p>
+        </div>
+      </div>
+      <div class="lab-rule">
+        <div class="rule-num">2</div>
+        <div class="rule-body">
+          <div class="rule-title">Storage of Food-Grade Materials</div>
+          <span class="rule-badge">Prep Room</span>
+          <p>Non-hazardous, food-grade materials such as baking soda, sodium chloride, dextrose, and low-concentration acetic acid (vinegar) are stored and locked in the classroom preparation room. MSDS binders are required in all science classrooms housing these chemicals.</p>
+          <div class="rule-links">
+            <a class="rule-link" href="https://docs.google.com/document/d/17RdCjK9Lenm3Fcw72cqG17DQlVFkZRV7VLERBGGuX8M/edit" target="_blank">Instructions for Teachers — How to Create an MSDS Binder [Google Doc]</a>
+          </div>
+        </div>
+      </div>
+      <div class="lab-rule">
+        <div class="rule-num">3</div>
+        <div class="rule-body">
+          <div class="rule-title">Online Chemical Tracking Log</div>
+          <span class="rule-badge" style="background:#B30000;">Required</span>
+          <p>Teachers must complete the online chemicals tracking log every time chemicals are retrieved from or returned to Room B370. This log is mandatory and must be completed before removing any chemical from storage.</p>
+        </div>
+      </div>
+      <div class="lab-rule">
+        <div class="rule-num">4</div>
+        <div class="rule-body">
+          <div class="rule-title">Laboratory Safety Agreement</div>
+          <span class="rule-badge" style="background:#B30000;">Signature Required</span>
+          <p>The Lab Safety Agreement must be signed by parents/guardians and students before participating in any science experiments involving chemicals and/or biomaterials. Signed agreements must be on file before any lab activity begins.</p>
+          <div class="rule-links">
+            <a class="rule-link" href="https://docs.google.com/document/d/17RdCjK9Lenm3Fcw72cqG17DQlVFkZRV7VLERBGGuX8M/edit" target="_blank">Lab Safety Agreement — Google Drive Folder [Google Doc]</a>
+          </div>
+        </div>
+      </div>
+      <div class="lab-rule">
+        <div class="rule-num">5</div>
+        <div class="rule-body">
+          <div class="rule-title">Dissection Safety and Protocol</div>
+          <span class="rule-badge">DESE Aligned</span>
+          <p>All teachers and students must adhere to DESE dissection guidelines and NSTA safety rules. Sharp objects such as dissection scalpels must be securely stored and locked in the science preparation room at all times when not in active use.</p>
+          <div class="rule-links">
+            <a class="rule-link" href="https://www.doe.mass.edu/frameworks/scitech/2016-04.pdf" target="_blank">DESE Dissection Guidelines (Appendix XII) [PDF]</a>
+            <a class="rule-link" href="https://www.nsta.org/nstas-official-positions/responsible-use-live-animals-and-dissection" target="_blank">NSTA — Responsible Use of Live Animals and Dissection [External Link]</a>
+          </div>
+        </div>
+      </div>
+      <div class="lab-rule">
+        <div class="rule-num">6</div>
+        <div class="rule-body">
+          <div class="rule-title">Safety Rule Review</div>
+          <span class="rule-badge">Annual</span>
+          <p>Teachers are required to review lab safety rules with students at the beginning of each school year. This review must be documented and the signed Lab Safety Agreement must be collected before any laboratory activity takes place.</p>
+        </div>
+      </div>
+      <div class="lab-rule">
+        <div class="rule-num">7</div>
+        <div class="rule-body">
+          <div class="rule-title">Incident Reporting</div>
+          <span class="rule-badge" style="background:#B30000;">Immediate</span>
+          <p>Any suspicious activities occurring in science laboratories or damaged chemical storage containers must be promptly reported to school administrators. Do not attempt to handle damaged containers — report immediately and secure the area.</p>
+        </div>
+      </div>
+    </div>
+    <div class="lab-source">
+      <strong style="color:#fff;">Source:</strong> These guidelines are drawn from the <a href="https://docs.google.com/document/d/17RdCjK9Lenm3Fcw72cqG17DQlVFkZRV7VLERBGGuX8M/edit" target="_blank">NBHS Science Department Lab Safety Rules</a> document. For questions or updates, contact the Science Department Head.
+    </div>
+  </div>
+
+  <!-- ===== MCAS PAGE ===== -->
+  <div id="page-mcas" class="page">
+    <div class="mcas-header">
+      <h2>MCAS Biology — Standards Tracker</h2>
+      <p>2025–26 · Benchmark &amp; MCAS Performance Data</p>
+    </div>
+    <div class="mcas-tabs">
+      <button class="active" onclick="showMcasTab('benchmark')">Benchmark 2025–26</button>
+      <button onclick="showMcasTab('results')">MCAS Results</button>
+    </div>
+    <div class="mcas-content">
+      <div id="mcas-benchmark" class="mcas-tab">
+        <table class="mcas-table">
+          <thead>
+            <tr>
+              <th>Standard</th>
+              <th>Topic</th>
+              <th>BOY</th>
+              <th>Q1</th>
+              <th>Q2</th>
+              <th>MCAS Avg</th>
+              <th>MCAS 2025</th>
+              <th>Priority</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="mcas-table-body"></tbody>
+        </table>
+      </div>
+      <div id="mcas-results" class="mcas-tab" style="display:none;">
+        <div style="padding:20px;background:#F9F9F9;border:1px solid #E8E8E8;font-size:13px;color:#666;">
+          <p>MCAS 2025 Biology results are reflected in the benchmark data table. See the Benchmark tab for full standards-level performance data.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end #main -->
+
+<script>
+// ===== DATA =====
+const BASE_URL = "https://d2xsxph8kpxj0f.cloudfront.net/310519663412359612/DMvDiCYoCpTAKstdhKxsmm";
+
+const SESSIONS = [
+  {
+    id: "review-both-presentations", date: "2026-03-26", displayDate: "Thursday, March 26, 2026",
+    title: "Questioning Strategies & Structuring Academic Discourse in Science",
+    subtitle: "Full PLC Session — Full Science Department",
+    duration: "41 Minutes", audience: "Grades 9–12 Science Teachers",
+    alignment: "OSE Lesson Internalization Protocol & DESE LIT (2025–26)",
+    status: "completed",
+    objectives: [
+      "Understand how the type of question a teacher asks determines the type of thinking students do.",
+      "Learn and practice the Before/During/After arc for structuring academic discourse in science.",
+      "Identify one questioning strategy and one discourse structure to implement before the next PLC."
+    ],
+    whatToBring: ["Your OpenSciEd Teacher Edition or upcoming lesson plan", "A specific lesson moment where you want to improve student discourse", "Pen and sticky notes for reflection"],
+    agenda: [
+      {time:"0:00", duration:"3 min", activity:"Welcome & Framing", description:"Introduce the session purpose: today we deliver both presentations — Questioning Strategies and Structuring Academic Discourse — and connect them to tomorrow's Lesson Internalization Protocol.", slides:"Slide 1"},
+      {time:"3:00", duration:"2 min", activity:"Agenda & Norms", description:"Walk through the session agenda and review 2–3 shared norms.", slides:"Slides 2–3"},
+      {time:"5:00", duration:"20 min", activity:"Presentation 1: Questioning Strategies", description:"Full delivery of the Questioning Strategies presentation. Covers three levels of questioning, five talk moves, and collaborative planning of a questioning sequence.", slides:"Questioning Strategies Deck"},
+      {time:"25:00", duration:"20 min", activity:"Presentation 2: Structuring Academic Discourse", description:"Full delivery of the Structuring Academic Discourse presentation. Covers the Before/During/After arc, equity moves, and collaborative planning of a discourse sequence.", slides:"Structuring Discourse Deck"},
+      {time:"45:00", duration:"3 min", activity:"Reflection & Close", description:"Each teacher writes one questioning strategy and one discourse structure they will try before 3/27. Preview tomorrow's Lesson Internalization Protocol session.", slides:"—"}
+    ],
+    slidesDownloads: [
+      {label:"Structuring Academic Discourse (OSE Version)", url:`${BASE_URL}/StructureAcademicDiscourseinScience_de2da9a8.pptx`},
+      {label:"Structuring Academic Discourse (Standard Version)", url:`${BASE_URL}/Structuring_Academic_Discourse_in_Science_From_Questions_to_Conversation_2c213941.pptx`}
+    ],
+    overview: "This session opens the spring PLC cycle with two connected presentations: Questioning Strategies in Science and Structuring Academic Discourse. Together, they address one of the most powerful levers in science teaching — the quality of the questions we ask and the structures we put in place for students to talk to each other about science ideas."
+  },
+  {
+    id: "lesson-internalization-protocol", date: "2026-03-27", displayDate: "Friday, March 27, 2026",
+    title: "Lesson Internalization Protocol: Applying Questioning & Discourse Strategies",
+    subtitle: "Practice Session — Full Science Department",
+    duration: "48 Minutes", audience: "Grades 9–12 Science Teachers",
+    alignment: "OSE Lesson Internalization Protocol & DESE LIT Step 4 (2025–26)",
+    status: "completed",
+    objectives: [
+      "Apply the Lesson Internalization Protocol to an upcoming lesson with a focus on questioning and discourse.",
+      "Understand and apply the Money Question framework: craft one question that is Singular, Precise, and Possibility-Focused.",
+      "Plan a complete facilitation sequence for a real lesson moment.",
+      "Identify supports for all learners (MLLs, students with disabilities, co-teaching partners)."
+    ],
+    whatToBring: ["Your annotated lesson plan (OpenSciEd Teacher Edition or standard lesson plan)", "Notes or commitments from yesterday's 3/26 session", "OSE Lesson Internalization Protocol handout"],
+    agenda: [
+      {time:"0:00", duration:"3 min", activity:"Welcome & Connection", description:"Connect today's session to yesterday's presentations. Review the three commitments teachers made at the end of 3/26.", slides:"Slide 1"},
+      {time:"3:00", duration:"5 min", activity:"The Money Question Framework", description:"Introduce the Money Question concept: one question that is Singular, Precise, and Possibility-Focused. Show examples from science lessons.", slides:"Slides 2–4"},
+      {time:"8:00", duration:"20 min", activity:"Lesson Internalization Protocol", description:"Teachers work through the LIT with their upcoming lesson, focusing on Steps 1–4: Read the lesson, Identify the learning goal, Anticipate student thinking, Plan the Money Question.", slides:"LIT Protocol"},
+      {time:"28:00", duration:"15 min", activity:"Partner Share & Feedback", description:"Partners share their Money Question and facilitation plan. Give and receive feedback using the SPF criteria.", slides:"Slides 5–6"},
+      {time:"43:00", duration:"5 min", activity:"Reflection & Commitment", description:"Each teacher records their final Money Question and facilitation plan. This becomes the evidence we examine on 3/31.", slides:"—"}
+    ],
+    slidesDownloads: [
+      {label:"Lesson Internalization Protocol Slides (.PPTX)", url:`${BASE_URL}/Lesson_Internalization_Protocol__Applying_Questioning___Discourse_Strategies_d0fcd40c.pptx`},
+      {label:"OSE Lesson Internalization Protocol (PDF)", url:`${BASE_URL}/OSELessonInternalizationProtocol(NBHS)_37ecffac.pdf`},
+      {label:"Lesson Internalization Tool 2025–26 (PDF)", url:`${BASE_URL}/LessonInternalizationTool(2025-26)_5e213b39.pdf`}
+    ],
+    overview: "This session guides teachers through the Lesson Internalization Protocol with a specific focus on questioning and discourse. Teachers leave with a concrete Money Question and facilitation plan tied to a real upcoming lesson."
+  },
+  {
+    id: "student-work-analysis-ose", date: "2026-03-31", displayDate: "Tuesday, March 31, 2026",
+    title: "Reading the Evidence: What Did Students Actually Produce?",
+    subtitle: "Full Science Department",
+    duration: "45 Minutes", audience: "Grades 9–12 Science Teachers",
+    alignment: "OSE Lesson Internalization Protocol & DESE LIT (2025–26)",
+    status: "completed",
+    objectives: [
+      "Examine student work samples to identify what students understood and where misconceptions remain.",
+      "Use a structured protocol to read student work without judgment — focusing on evidence, not evaluation.",
+      "Identify 1–2 patterns across student work that will inform the next instructional move."
+    ],
+    whatToBring: ["3–5 student work samples from your most recent lesson (written responses, notebooks, exit tickets)", "Your lesson plan from the lesson you taught", "Notes from the 3/27 LIT session"],
+    agenda: [
+      {time:"0:00", duration:"3 min", activity:"Welcome & Framing", description:"Connect today's work to the arc: we planned with discourse in mind (3/26–27), now we examine what students actually produced.", slides:"Slide 1"},
+      {time:"3:00", duration:"7 min", activity:"Protocol Overview", description:"Introduce the student work analysis protocol. Establish norms for reading student work: describe before evaluating, evidence before inference.", slides:"Slides 2–3"},
+      {time:"10:00", duration:"25 min", activity:"Student Work Analysis", description:"Course-alike teams examine student work samples using the protocol. Focus: What do students understand? What misconceptions appear? What patterns emerge across multiple students?", slides:"—"},
+      {time:"35:00", duration:"7 min", activity:"Whole-Group Share", description:"Each course team shares 1–2 patterns they identified. Facilitator charts patterns for use in tomorrow's planning session.", slides:"—"},
+      {time:"42:00", duration:"3 min", activity:"Bridge to Tomorrow", description:"Preview the April 1 session: we will use today's evidence to plan the next instructional move together.", slides:"—"}
+    ],
+    slidesDownloads: [
+      {label:"Reading the Evidence Slides (.PPTX)", url:`${BASE_URL}/Reading_the_Evidence__What_Did_Students_Actually_Produce_62dbbe3b.pptx`},
+      {label:"OSE Lesson Internalization Protocol (PDF)", url:`${BASE_URL}/OSELessonInternalizationProtocol(NBHS)_ce0a2e3d.pdf`},
+      {label:"Lesson Internalization Tool 2025–26 (PDF)", url:`${BASE_URL}/LessonInternalizationTool(2025-26)_8cfeb8bf.pdf`}
+    ],
+    overview: "This session turns the lens on student work. Teachers bring samples from their most recent lesson and use a structured protocol to examine what students actually produced — looking for patterns, misconceptions, and evidence of the discourse moves from 3/26–27."
+  },
+  {
+    id: "student-work-analysis-gened", date: "2026-04-01", displayDate: "Wednesday, April 1, 2026",
+    title: "Responding to the Evidence: Planning Our Next Instructional Move",
+    subtitle: "Full Science Department",
+    duration: "45 Minutes", audience: "Grades 9–12 Science Teachers",
+    alignment: "OSE Lesson Internalization Protocol & DESE LIT (2025–26)",
+    status: "completed",
+    objectives: [
+      "Use evidence from student work (identified on 3/31) to plan the next instructional move.",
+      "Co-plan with course-alike teams using student thinking as the planning frame.",
+      "Leave with a concrete next lesson plan that responds directly to what students produced."
+    ],
+    whatToBring: ["Notes and patterns from yesterday's student work analysis (3/31)", "Your upcoming lesson plan or unit sequence", "OSE Teacher Edition"],
+    agenda: [
+      {time:"0:00", duration:"3 min", activity:"Welcome & Connection", description:"Reconnect to yesterday's patterns. Each team briefly restates the 1–2 patterns they identified in student work.", slides:"Slide 1"},
+      {time:"3:00", duration:"5 min", activity:"From Evidence to Planning", description:"Introduce the planning frame: given what students produced, what is the most important instructional move for the next lesson?", slides:"Slides 2–3"},
+      {time:"8:00", duration:"27 min", activity:"Course-Alike Co-Planning", description:"Teams co-plan the next lesson using student evidence as the anchor. Focus: What do students need next? What question will drive the lesson? What discourse structure will support their thinking?", slides:"—"},
+      {time:"35:00", duration:"7 min", activity:"Share Out", description:"Each team shares their next lesson plan and the evidence that drove their decisions.", slides:"—"},
+      {time:"42:00", duration:"3 min", activity:"Close & Preview", description:"Preview the April 3 session: full co-planning with discourse built in from the start.", slides:"—"}
+    ],
+    slidesDownloads: [
+      {label:"Responding to the Evidence Slides (.PPTX)", url:`${BASE_URL}/Responding_to_the_Evidence__Planning_Our_Next_Instructional_Move_8eae7de0.pptx`},
+      {label:"OSE Lesson Internalization Protocol (PDF)", url:`${BASE_URL}/OSELessonInternalizationProtocol(NBHS)_ce0a2e3d.pdf`},
+      {label:"Lesson Internalization Tool 2025–26 (PDF)", url:`${BASE_URL}/LessonInternalizationTool(2025-26)_8cfeb8bf.pdf`}
+    ],
+    overview: "This session uses the student work evidence from 3/31 to drive co-planning. Course-alike teams plan the next lesson together, with student thinking as the anchor and discourse built into the design from the start."
+  },
+  {
+    id: "co-planning-discourse-apr7", date: "2026-04-07", displayDate: "Tuesday, April 7, 2026",
+    title: "From Evidence to Lesson: Co-Planning with Discourse in Mind",
+    subtitle: "Full Science Department",
+    duration: "45 Minutes", audience: "Grades 9–12 Science Teachers",
+    alignment: "OSE Lesson Internalization Protocol & DESE LIT (2025–26)",
+    status: "today",
+    objectives: [
+      "Co-plan an upcoming lesson with discourse structures explicitly designed in.",
+      "Apply the Before/During/After arc to a real lesson moment.",
+      "Leave with a lesson plan that includes a Money Question, a discourse structure, and supports for all learners."
+    ],
+    whatToBring: ["Your upcoming lesson plan (OpenSciEd Teacher Edition or standard plan)", "Notes from previous sessions in this arc", "OSE Lesson Internalization Protocol handout"],
+    agenda: [
+      {time:"0:00", duration:"3 min", activity:"Welcome & Arc Review", description:"Brief review of the full arc: from questioning strategies (3/26) through student work analysis (3/31–4/1) to today's co-planning.", slides:"Slide 1"},
+      {time:"3:00", duration:"5 min", activity:"Co-Planning Frame", description:"Introduce the co-planning frame: Money Question → Independent Write → Turn & Talk → Share Out → Synthesis.", slides:"Slides 2–3"},
+      {time:"8:00", duration:"27 min", activity:"Course-Alike Co-Planning", description:"Teams co-plan an upcoming lesson using the full discourse frame. Each team produces a lesson plan with a Money Question, a discourse structure, and supports for MLLs and students with disabilities.", slides:"—"},
+      {time:"35:00", duration:"7 min", activity:"Gallery Walk / Share Out", description:"Teams share their lesson plans. Whole group identifies common patterns and strong moves.", slides:"—"},
+      {time:"42:00", duration:"3 min", activity:"Close & Commitment", description:"Each teacher commits to one lesson where they will implement the full discourse frame before the next PLC.", slides:"—"}
+    ],
+    slidesDownloads: [
+      {label:"Co-Planning with Discourse in Mind (.PPTX)", url:`${BASE_URL}/From_Evidence_to_Lesson__Co-Planning_with_Discourse_in_Mind_7e87616b.pptx`},
+      {label:"OSE Lesson Internalization Protocol (PDF)", url:`${BASE_URL}/OSELessonInternalizationProtocol(NBHS)_ce0a2e3d.pdf`},
+      {label:"Lesson Internalization Tool 2025–26 (PDF)", url:`${BASE_URL}/LessonInternalizationTool(2025-26)_8cfeb8bf.pdf`}
+    ],
+    overview: "This session is the culmination of the spring arc. Teams co-plan a real upcoming lesson using the full discourse framework — Money Question, Before/During/After arc, and supports for all learners — grounded in the evidence from student work."
+  },
+  {
+    id: "plc-2026-04-08", date: "2026-04-08", displayDate: "Wednesday, April 8, 2026",
+    title: "What Does a Good Discussion Look Like?",
+    subtitle: "Full PLC Session — Full Science Department",
+    duration: "45 Minutes", audience: "Grades 9–12 Science Teachers",
+    alignment: "OSE Lesson Internalization Protocol & DESE LIT (2025–26)",
+    status: "upcoming",
+    objectives: ["Develop shared criteria for what a high-quality classroom discussion looks like in science.", "Practice evaluating discussion quality using the shared criteria.", "Apply criteria to plan a discussion for an upcoming lesson."],
+    whatToBring: ["Your upcoming lesson plan", "Notes from previous sessions"],
+    agenda: [{time:"0:00", duration:"45 min", activity:"Full Session", description:"Developing shared criteria for high-quality classroom discussion and applying them to lesson planning.", slides:"Session Slides"}],
+    slidesDownloads: [{label:"Session Slides (.PPTX)", url:`${BASE_URL}/Apr8_PLC_v5_016f222e.pptx`}],
+    overview: "This session builds on the discourse work from the spring arc by developing shared department criteria for what a high-quality discussion looks like in a science classroom."
+  },
+  {
+    id: "plc-2026-04-10", date: "2026-04-10", displayDate: "Friday, April 10, 2026",
+    title: "Co-Planning: Designing a Discussion for an Upcoming Lesson",
+    subtitle: "Co-Planning Session — Course-Alike Teams",
+    duration: "45 Minutes", audience: "Course-Alike Teams",
+    alignment: "OSE Lesson Internalization Protocol & DESE LIT (2025–26)",
+    status: "upcoming",
+    objectives: ["Apply the shared discussion criteria to design a structured discussion for an upcoming lesson.", "Co-plan with course-alike teams using the criteria as a planning frame."],
+    whatToBring: ["Your upcoming lesson plan", "Notes from the April 8 session"],
+    agenda: [{time:"0:00", duration:"45 min", activity:"Course-Alike Co-Planning", description:"Teams design a structured discussion for an upcoming lesson using the criteria developed on April 8.", slides:"Session Slides"}],
+    slidesDownloads: [{label:"Session Slides (.PPTX)", url:`${BASE_URL}/Apr10_PLC_v6_5a0e3f38.pptx`}],
+    overview: "Course-alike teams apply the discussion criteria from April 8 to co-plan a structured discussion for an upcoming lesson."
+  },
+  {id:"plc-2026-04-14",date:"2026-04-14",displayDate:"Tuesday, April 14, 2026",title:"PLC Session — Topic TBD",subtitle:"Full Science Department",duration:"45 Minutes",audience:"Grades 9–12 Science Teachers",alignment:"TBD",status:"upcoming",objectives:["Topic to be determined"],whatToBring:["Your upcoming lesson plan"],agenda:[{time:"0:00",duration:"45 min",activity:"Full Session",description:"Topic to be determined.",slides:"—"}],slidesDownloads:[],overview:"Session topic to be determined."},
+  {id:"plc-2026-04-15",date:"2026-04-15",displayDate:"Wednesday, April 15, 2026",title:"PLC Session — Topic TBD",subtitle:"Full Science Department",duration:"45 Minutes",audience:"Grades 9–12 Science Teachers",alignment:"TBD",status:"upcoming",objectives:["Topic to be determined"],whatToBring:["Your upcoming lesson plan"],agenda:[{time:"0:00",duration:"45 min",activity:"Full Session",description:"Topic to be determined.",slides:"—"}],slidesDownloads:[],overview:"Session topic to be determined."},
+  {id:"plc-2026-04-17",date:"2026-04-17",displayDate:"Friday, April 17, 2026",title:"PLC Session — Topic TBD",subtitle:"Full Science Department",duration:"45 Minutes",audience:"Grades 9–12 Science Teachers",alignment:"TBD",status:"upcoming",objectives:["Topic to be determined"],whatToBring:["Your upcoming lesson plan"],agenda:[{time:"0:00",duration:"45 min",activity:"Full Session",description:"Topic to be determined.",slides:"—"}],slidesDownloads:[],overview:"Session topic to be determined."},
+  {id:"plc-2026-04-28",date:"2026-04-28",displayDate:"Tuesday, April 28, 2026",title:"PLC Session — Topic TBD",subtitle:"Full Science Department",duration:"45 Minutes",audience:"Grades 9–12 Science Teachers",alignment:"TBD",status:"upcoming",objectives:["Topic to be determined"],whatToBring:["Your upcoming lesson plan"],agenda:[{time:"0:00",duration:"45 min",activity:"Full Session",description:"Topic to be determined.",slides:"—"}],slidesDownloads:[],overview:"Session topic to be determined."},
+  {id:"plc-2026-04-29",date:"2026-04-29",displayDate:"Wednesday, April 29, 2026",title:"PLC Session — Topic TBD",subtitle:"Full Science Department",duration:"45 Minutes",audience:"Grades 9–12 Science Teachers",alignment:"TBD",status:"upcoming",objectives:["Topic to be determined"],whatToBring:["Your upcoming lesson plan"],agenda:[{time:"0:00",duration:"45 min",activity:"Full Session",description:"Topic to be determined.",slides:"—"}],slidesDownloads:[],overview:"Session topic to be determined."},
+  {id:"plc-2026-05-01",date:"2026-05-01",displayDate:"Friday, May 1, 2026",title:"PLC Session — Topic TBD",subtitle:"Full Science Department",duration:"45 Minutes",audience:"Grades 9–12 Science Teachers",alignment:"TBD",status:"upcoming",objectives:["Topic to be determined"],whatToBring:["Your upcoming lesson plan"],agenda:[{time:"0:00",duration:"45 min",activity:"Full Session",description:"Topic to be determined.",slides:"—"}],slidesDownloads:[],overview:"Session topic to be determined."}
+];
+
+const TEACHERS = [
+  {lastName:"Barrett",firstName:"Cassidy",room:"B-371",ext:"25371",courses:["Biology"]},
+  {lastName:"Bonner",firstName:"Heather",room:"3-319",ext:"23319",courses:["Biology (Grade 10)","Environmental Science"]},
+  {lastName:"Viveiros",firstName:"Kaelyn",room:"B-332",ext:"25332",courses:["Marine Science","Genetics"]},
+  {lastName:"Oriole",firstName:"Victoria",room:"B-210",ext:"25371",courses:["Biology (Grade 10)"]},
+  {lastName:"McCauley",firstName:"Brian",room:"3-304",ext:"23304",courses:["Biology (Grade 9)","Design for Manufacturing / 3D Solid Modeling"]},
+  {lastName:"Flynn",firstName:"Kevin",room:"B-311",ext:"25311",courses:["Pre-AP Biology","Biology (Grade 9)"]},
+  {lastName:"Gagnon",firstName:"Ava",room:"B-320",ext:"25320",courses:["Pre-AP Biology","AP Biology"]},
+  {lastName:"Gifford",firstName:"Patricia",room:"B-318",ext:"25318",courses:["AP Environmental Science","Honors Marine Science"]},
+  {lastName:"Gryss",firstName:"Jayni",room:"B-369",ext:"25369",courses:["Pre-AP Chemistry","AP Chemistry"]},
+  {lastName:"Gilbert",firstName:"Tyler",room:"B-356",ext:"25356",courses:["Biology (Grade 10)"]},
+  {lastName:"Jupin",firstName:"Abigail",room:"B-330",ext:"25330",courses:["Environmental Science","Biology (Grade 10)"]},
+  {lastName:"Kolbeck",firstName:"Robert",room:"B-354",ext:"25354",courses:["Pre-AP Biology","Foundations in Biotech","Forensics Lab"]},
+  {lastName:"LeBlanc",firstName:"Nicholas",room:"3-318",ext:"23318",courses:["Biology (Grade 9)","Earth and Space"]},
+  {lastName:"Miksch",firstName:"Joseph",room:"B-342",ext:"25342",courses:["Chemistry","Biology (Grade 10)"]},
+  {lastName:"Richard",firstName:"Lisa",room:"1-319",ext:"21319",courses:["Environmental Science"]},
+  {lastName:"Roche",firstName:"Samantha",room:"B-367",ext:"25367",courses:["Chemistry","Pre-AP Chemistry"]},
+  {lastName:"Stephenson",firstName:"Grace",room:"3-303",ext:"23303",courses:["Biology (Grade 10)","Pre-AP Biology"]},
+  {lastName:"Tveit",firstName:"Seannine",room:"B-309",ext:"25309",courses:["Biology NC"]},
+  {lastName:"Walker",firstName:"Nathaniel",room:"B-313",ext:"25313",courses:["Biology (Grade 9)"]},
+  {lastName:"Way",firstName:"Jonathan",room:"B-312",ext:"25312",courses:["Environmental Science","Zoology"]},
+  {lastName:"Winderlick",firstName:"Michael",room:"B-344",ext:"25344",courses:["Biology (Grade 9)"]}
+];
+
+const NEWSLETTERS = [
+  {id:"nl-8-29-25",displayDate:"August 29, 2025",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_8.29.25_f7aed8a3.pdf`,season:"Fall 2025"},
+  {id:"nl-9-5-25",displayDate:"September 5, 2025",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_9.5.25_07a2448e.pdf`,season:"Fall 2025"},
+  {id:"nl-9-12-25",displayDate:"September 12, 2025",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_9.12.25_e790d284.pdf`,season:"Fall 2025"},
+  {id:"nl-9-19-25",displayDate:"September 19, 2025",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_9.19.25_7a7cb852.pdf`,season:"Fall 2025"},
+  {id:"nl-9-26-25",displayDate:"September 26, 2025",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_9.26.25_a5d24d8d.pdf`,season:"Fall 2025"},
+  {id:"nl-10-3-25",displayDate:"October 3, 2025",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_10.3.25_3b7e0122.pdf`,season:"Fall 2025"},
+  {id:"nl-10-10-25",displayDate:"October 10, 2025",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_10.10.25_7abbd28b.pdf`,season:"Fall 2025"},
+  {id:"nl-10-17-25",displayDate:"October 17, 2025",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_10.17.25_ed6e52ce.pdf`,season:"Fall 2025"},
+  {id:"nl-10-24-25",displayDate:"October 24, 2025",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_10.24.25_7298f08f.pdf`,season:"Fall 2025"},
+  {id:"nl-10-31-25",displayDate:"October 31, 2025",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_10.31.25_43f0b39f.pdf`,season:"Fall 2025"},
+  {id:"nl-11-7-25",displayDate:"November 7, 2025",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_11.7.25_442ce8bc.pdf`,season:"Fall 2025"},
+  {id:"nl-11-14-25",displayDate:"November 14, 2025",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_11.14.25_55f68140.pdf`,season:"Fall 2025"},
+  {id:"nl-11-21-25",displayDate:"November 21, 2025",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_11.21.25_969ddbbe.pdf`,season:"Fall 2025"},
+  {id:"nl-11-26-25",displayDate:"November 26, 2025",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_11.26.25_fe67ea5e.pdf`,season:"Fall 2025"},
+  {id:"nl-12-5-25",displayDate:"December 5, 2025",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_12.5.25_8cf4cbcf.pdf`,season:"Fall 2025"},
+  {id:"nl-12-12-25",displayDate:"December 12, 2025",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_12.12.25_18683e7b.pdf`,season:"Fall 2025"},
+  {id:"nl-12-19-25",displayDate:"December 19, 2025",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_12.19.25_ae250bc0.pdf`,season:"Fall 2025"},
+  {id:"nl-1-16-26",displayDate:"January 16, 2026",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_1.16.26_fdc24432.pdf`,season:"Spring 2026"},
+  {id:"nl-1-23-26",displayDate:"January 23, 2026",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_1.23.26_7f80efda.pdf`,season:"Spring 2026"},
+  {id:"nl-1-30-26",displayDate:"January 30, 2026",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_1.30.26_01a2fb01.pdf`,season:"Spring 2026"},
+  {id:"nl-2-6-26",displayDate:"February 6, 2026",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_2.6.26_29ae62de.pdf`,season:"Spring 2026"},
+  {id:"nl-3-6-26",displayDate:"March 6, 2026",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_3.6.26_97eb92c6.pdf`,season:"Spring 2026"},
+  {id:"nl-3-13-26",displayDate:"March 13, 2026",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_3.13.26_e61dd440.pdf`,season:"Spring 2026"},
+  {id:"nl-3-20-26",displayDate:"March 20, 2026",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_3.20.26_e6b8739f.pdf`,season:"Spring 2026"},
+  {id:"nl-3-27-26",displayDate:"March 27, 2026",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_3.27.26_b4c7440a.pdf`,season:"Spring 2026"},
+  {id:"nl-4-3-26",displayDate:"April 3, 2026",url:`${BASE_URL}/ScienceTeamWeeklyNewsletter_4.3.26_21c07ebf.pdf`,season:"Spring 2026"}
+];
+
+const DEPT_PD = [
+  {id:"pd-unit-unpacking-part1",displayDate:"Tuesday, August 26, 2025",title:"From Plan to Practice: Mastering the Unit Unpacking & Lesson Internalization Protocol (Part 1)",status:"completed",description:"This PD session guides New Bedford High School science teachers in strengthening instructional planning and delivery. The session focuses primarily on the Unit Unpacking Protocol, helping teachers clarify goals, align instruction with standards, and anticipate student needs while affirming student identities. Teachers also engage with the Lesson Internalization Protocol to prepare lessons with clarity, address misconceptions, and promote deeper learning."},
+  {id:"pd-unit-unpacking-part2",displayDate:"Wednesday, August 27, 2025",title:"From Plan to Practice: Mastering the Unit Unpacking & Lesson Internalization Protocol (Part 2)",status:"completed",description:"This PD session guides science teachers in strengthening their instructional planning and lesson preparation. The session focuses primarily on the Lesson Internalization Protocol, supporting teachers in anticipating student thinking, addressing misconceptions, and planning clear, rigorous instruction."},
+  {id:"pd-wida-internalization-tech",displayDate:"Tuesday, November 4, 2025",title:"Strengthening Science Instruction Through WIDA, Lesson Internalization, and Technology",status:"completed",description:"This professional learning day engages the Science Department in a series of connected sessions designed to strengthen instructional quality and deepen student understanding. Teachers begin by exploring how to leverage WIDA frameworks to better support multilingual learners and students on the Prioritization Plan."},
+  {id:"pd-student-work-analysis",displayDate:"Wednesday, December 3, 2025",title:"Looking at Student Work Through a Standards-Aligned Lens",status:"completed",description:"This PD session engages teachers in collaboratively analyzing student evidence using the TNTP Student Work Analysis Protocol to deepen understanding of how well student work reflects mastery of NGSS-aligned learning goals."},
+  {id:"pd-anchoring-lessons",displayDate:"Wednesday, February 11, 2026",title:"Anchoring Lessons in Purpose: Standards, Phenomena, and the Driving Question",status:"completed",description:"This professional development session focuses on using student assessment data to drive intentional instructional planning by anchoring lessons in priority standards, meaningful phenomena, and a clear driving question."},
+  {id:"pd-planning-instructional-moves",displayDate:"Wednesday, February 25, 2026",title:"Planning Instructional Moves to Support All Learners",status:"completed",description:"This professional development session focuses on helping science teachers intentionally plan instructional moves that respond to evidence of student learning and support all learners."},
+  {id:"pd-structured-discussion",displayDate:"Wednesday, April 8, 2026",title:"Designing a Structured Discussion: From Criteria to Launch Question",status:"upcoming",description:"This professional development session builds directly on the department's shared criteria for a high-quality discussion. Teachers re-anchor to the six criteria, then move into the design phase: choosing a discussion format, writing a launch question for an upcoming lesson, and stress-testing that question against the criteria.",slidesUrl:`${BASE_URL}/Apr8_PD_v4_6665a705.pptx`}
+];
+
+const MCAS_DATA = [
+  {code:"HS-LS1-1",topic:"Protein Synthesis & Transcription",category:"MO",boy:37,q1:21,q2:25,mcasAvg:27,mcas2025:25,priority:"critical",note:"Dropped sharply from BOY to Q1 — students regressing. Consistently lowest on MCAS."},
+  {code:"HS-LS1-4",topic:"Photosynthesis & Cellular Respiration",category:"MO",boy:26,q1:34,q2:39,mcasAvg:21,mcas2025:16,priority:"critical",note:"Improving on benchmark (+13 pts BOY→Q2) but still far below MCAS historical avg."},
+  {code:"HS-LS4-5",topic:"Evolution: Biodiversity & Natural Selection",category:"EV",boy:23,q1:24,q2:27,mcasAvg:24,mcas2025:22,priority:"critical",note:"Consistently lowest standard on both benchmark and MCAS. Barely moving across all checkpoints."},
+  {code:"HS-LS3-1",topic:"Heredity: DNA, Genes & Chromosomes",category:"HE",boy:34,q1:51,q2:55,mcasAvg:29,mcas2025:24,priority:"watch",note:"Strong benchmark growth (+21 pts) but MCAS performance has been declining."},
+  {code:"HS-LS3-2",topic:"Heredity: Meiosis & Genetic Variation",category:"HE",boy:34,q1:37,q2:42,mcasAvg:29,mcas2025:24,priority:"watch",note:"Moderate benchmark scores. Pedigree and meiosis items historically weak on MCAS."},
+  {code:"HS-LS1-7",topic:"Photosynthesis & Respiration (Energy)",category:"MO",boy:41,q1:41,q2:52,mcasAvg:21,mcas2025:16,priority:"watch",note:"Benchmark scores are improving but MCAS performance on this standard has been very low historically."},
+  {code:"HS-LS4-1",topic:"Evolution: Natural Selection & Adaptation",category:"EV",boy:43,q1:43,q2:54,mcasAvg:25,mcas2025:22,priority:"watch",note:"Good benchmark growth. MCAS performance still below 30% historically."},
+  {code:"HS-LS1-2",topic:"Cell Transport & Homeostasis",category:"MO",boy:34,q1:41,q2:50,mcasAvg:60,mcas2025:60,priority:"strength",note:"Benchmark improving and aligns with MCAS strength area. Maintain instructional focus."},
+  {code:"HS-LS1-3",topic:"Cell Cycle & Mitosis",category:"MO",boy:46,q1:46,q2:53,mcasAvg:57,mcas2025:57,priority:"strength",note:"Consistent strength on both benchmark and MCAS. Students demonstrate solid understanding."},
+  {code:"HS-LS2-1",topic:"Ecosystem Dynamics & Energy Flow",category:"EC",boy:31,q1:34,q2:43,mcasAvg:65,mcas2025:65,priority:"strength",note:"Benchmark below MCAS historical avg — students may need more ecosystem practice before MCAS."}
+];
+
+// ===== NAVIGATION =====
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#sidebar nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  const btns = document.querySelectorAll('#sidebar nav button');
+  const pageMap = {home:0, plc:1, teachers:2, pathway:3, deptpd:4, newsletters:5, curriculum:6, labsafety:7, mcas:8};
+  if (pageMap[pageId] !== undefined) btns[pageMap[pageId]].classList.add('active');
+  
+  if (pageId === 'plc') renderPLC();
+  if (pageId === 'teachers') renderTeachers();
+  if (pageId === 'newsletters') renderNewsletters();
+  if (pageId === 'deptpd') renderDeptPD();
+  if (pageId === 'mcas') renderMCAS();
+}
+
+// ===== PLC SESSIONS =====
+let currentSession = null;
+function renderPLC() {
+  const sidebar = document.getElementById('plc-sidebar-list');
+  if (sidebar.innerHTML) return;
+  
+  const months = {};
+  SESSIONS.forEach(s => {
+    const m = s.displayDate.split(',')[0].trim().split(' ').slice(0,2).join(' ');
+    if (!months[m]) months[m] = [];
+    months[m].push(s);
+  });
+  
+  let html = '';
+  Object.entries(months).forEach(([month, sessions]) => {
+    html += `<div class="month-header">${month}</div>`;
+    sessions.forEach(s => {
+      html += `<div class="session-item" id="si-${s.id}" onclick="showSession('${s.id}')">
+        <div class="s-status ${s.status}">${s.status.toUpperCase()}</div>
+        <div class="s-date">${s.displayDate}</div>
+        <div class="s-title">${s.title}</div>
+        <div class="s-sub">${s.subtitle}</div>
+      </div>`;
+    });
+  });
+  sidebar.innerHTML = html;
+  
+  const todaySession = SESSIONS.find(s => s.status === 'today') || SESSIONS[0];
+  showSession(todaySession.id);
+}
+
+function showSession(id) {
+  const s = SESSIONS.find(x => x.id === id);
+  if (!s) return;
+  
+  document.querySelectorAll('.session-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('si-' + id);
+  if (el) el.classList.add('active');
+  
+  const agendaRows = s.agenda.map(a => `
+    <tr>
+      <td class="time-col">${a.time}</td>
+      <td class="dur-col">${a.duration}</td>
+      <td><div class="act-title">${a.activity}</div><div class="act-desc">${a.description}</div></td>
+      <td style="font-size:11px;color:#888;">${a.slides}</td>
+    </tr>`).join('');
+  
+  const dlBtns = s.slidesDownloads.map(d => `
+    <a class="dl-btn" href="${d.url}" target="_blank" download>
+      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      ${d.label}
+    </a>`).join('');
+  
+  const objList = s.objectives.map(o => `<li>${o}</li>`).join('');
+  const bringList = s.whatToBring.map(b => `<li>${b}</li>`).join('');
+  
+  document.getElementById('plc-detail-panel').innerHTML = `
+    <span class="status-badge ${s.status}">${s.status.toUpperCase()}</span>
+    <h2 style="margin-top:8px;">${s.title}</h2>
+    <div class="detail-sub">${s.subtitle}</div>
+    <div class="plc-meta">
+      <div class="meta-item">📅 <strong>${s.displayDate}</strong></div>
+      <div class="meta-item">⏱ <strong>${s.duration}</strong></div>
+      <div class="meta-item">👥 ${s.audience}</div>
+      <div class="meta-item">📌 ${s.alignment}</div>
+    </div>
+    <div class="detail-tabs">
+      <button class="active" onclick="showDetailTab(this,'agenda-${id}')">AGENDA</button>
+      <button onclick="showDetailTab(this,'info-${id}')">SESSION INFO</button>
+      ${s.slidesDownloads.length ? `<button onclick="showDetailTab(this,'slides-${id}')">SLIDES</button>` : ''}
+    </div>
+    <div id="agenda-${id}" class="tab-content active">
+      <div class="objectives-box"><div class="obj-label">Session Objectives</div><ul>${objList}</ul></div>
+      <div class="bring-box"><div class="bring-label">What to Bring</div><ul>${bringList}</ul></div>
+      <table class="agenda-table">
+        <thead><tr><th>Time</th><th>Min</th><th>Activity</th><th>Slides</th></tr></thead>
+        <tbody>${agendaRows}</tbody>
+        <tfoot><tr class="total-row"><td colspan="4">Total · ${s.duration} · Aligned to ${s.alignment}</td></tr></tfoot>
+      </table>
+    </div>
+    <div id="info-${id}" class="tab-content">
+      <div class="session-info-text"><h4>Session Overview</h4><p>${s.overview}</p></div>
+    </div>
+    ${s.slidesDownloads.length ? `<div id="slides-${id}" class="tab-content"><div class="slides-download">${dlBtns}</div></div>` : ''}
+  `;
+}
+
+function showDetailTab(btn, tabId) {
+  const panel = document.getElementById('plc-detail-panel');
+  panel.querySelectorAll('.detail-tabs button').forEach(b => b.classList.remove('active'));
+  panel.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+}
+
+// ===== TEACHERS =====
+function getCourseStyle(course) {
+  const c = course.toLowerCase();
+  if (c.includes('ap ') || c.includes('pre-ap')) return {bg:'#D4EDDA',color:'#155724'};
+  if (c.includes('nc') || c.includes('slife') || c.includes('ell')) return {bg:'#E2D9F3',color:'#4A235A'};
+  if (c.includes('marine') || c.includes('environmental') || c.includes('earth') || c.includes('zoology')) return {bg:'#D1ECF1',color:'#0C5460'};
+  if (c.includes('chemistry')) return {bg:'#FFF3CD',color:'#856404'};
+  if (c.includes('design') || c.includes('biotech') || c.includes('forensics') || c.includes('3d')) return {bg:'#F3E5F5',color:'#4A235A'};
+  return {bg:'#F4F4F4',color:'#333'};
+}
+
+function getAvatarColor(name) {
+  const colors = ['#B30000','#1A3A5C','#2D6A4F','#6B3A7D','#B5451B','#1B5E20','#0D47A1'];
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h<<5)-h);
+  return colors[Math.abs(h) % colors.length];
+}
+
+function renderTeacherCard(t) {
+  const initials = (t.firstName[0] + t.lastName[0]).toUpperCase();
+  const color = getAvatarColor(t.firstName + t.lastName);
+  const courses = t.courses.map(c => {
+    const s = getCourseStyle(c);
+    return `<span class="course-tag" style="background:${s.bg};color:${s.color};">${c}</span>`;
+  }).join('');
+  return `<div class="teacher-card" data-search="${t.firstName.toLowerCase()} ${t.lastName.toLowerCase()} ${t.room.toLowerCase()} ${t.courses.join(' ').toLowerCase()}">
+    <div class="tc-top">
+      <div class="tc-avatar" style="background:${color};">${initials}</div>
+      <div><div class="tc-name">${t.firstName} ${t.lastName}</div><div class="tc-info">Room ${t.room} · Ext. ${t.ext}</div></div>
+    </div>
+    <div class="tc-courses-label">Courses</div>
+    ${courses}
+  </div>`;
+}
+
+function renderTeachers() {
+  const grid = document.getElementById('teacher-grid');
+  if (grid.innerHTML) return;
+  const sorted = [...TEACHERS].sort((a,b) => a.lastName.localeCompare(b.lastName));
+  grid.innerHTML = sorted.map(renderTeacherCard).join('');
+}
+
+function filterTeachers(val) {
+  const v = val.toLowerCase();
+  document.querySelectorAll('.teacher-card').forEach(card => {
+    card.style.display = card.dataset.search.includes(v) ? '' : 'none';
+  });
+}
+
+// ===== NEWSLETTERS =====
+function renderNewsletters() {
+  const list = document.getElementById('newsletters-list');
+  if (list.innerHTML) return;
+  let html = '';
+  let lastSeason = '';
+  NEWSLETTERS.forEach(nl => {
+    if (nl.season !== lastSeason) {
+      html += `<div class="nl-season">${nl.season}</div>`;
+      lastSeason = nl.season;
+    }
+    html += `<a class="nl-item" href="${nl.url}" target="_blank">
+      <div class="nl-icon"><svg width="15" height="15" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+      <div class="nl-text"><div class="nl-date">${nl.displayDate}</div><div class="nl-sub">Science Team Weekly Newsletter · PDF</div></div>
+      <div class="nl-dl"><svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Download</div>
+    </a>`;
+  });
+  list.innerHTML = html;
+}
+
+// ===== DEPT PD =====
+function renderDeptPD() {
+  const listEl = document.getElementById('pd-list-items');
+  if (listEl.innerHTML) return;
+  listEl.innerHTML = DEPT_PD.map((pd, i) => `
+    <div class="pd-item" id="pdi-${pd.id}" onclick="showPD('${pd.id}')">
+      <div class="pd-date">${pd.displayDate}</div>
+      <div class="pd-title">${pd.title}</div>
+    </div>`).join('');
+  showPD(DEPT_PD[0].id);
+}
+
+function showPD(id) {
+  const pd = DEPT_PD.find(x => x.id === id);
+  if (!pd) return;
+  document.querySelectorAll('.pd-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('pdi-' + id);
+  if (el) el.classList.add('active');
+  const dlBtn = pd.slidesUrl ? `<div style="margin-top:16px;"><a class="dl-btn" href="${pd.slidesUrl}" target="_blank" download>
+    <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    Download Slides (.PPTX)
+  </a></div>` : '';
+  document.getElementById('pd-detail-panel').innerHTML = `
+    <span class="status-badge ${pd.status}">${pd.status.toUpperCase()}</span>
+    <h2 style="margin-top:8px;">${pd.title}</h2>
+    <div style="font-size:13px;color:#888;margin-bottom:16px;">${pd.displayDate}</div>
+    <div class="pd-overview-label">Session Overview</div>
+    <div class="pd-overview-text">${pd.description}</div>
+    ${dlBtn}
+  `;
+}
+
+// ===== CURRICULUM TABS =====
+function showCurrTab(tab) {
+  document.querySelectorAll('.curr-tab-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.curr-tabs button').forEach(b => b.classList.remove('active'));
+  document.getElementById('curr-' + tab).style.display = 'block';
+  event.target.classList.add('active');
+}
+
+// ===== MCAS =====
+function renderMCAS() {
+  const tbody = document.getElementById('mcas-table-body');
+  if (!tbody || tbody.innerHTML) return;
+  tbody.innerHTML = MCAS_DATA.map(row => {
+    const pClass = row.priority === 'critical' ? 'priority-critical' : row.priority === 'watch' ? 'priority-watch' : 'priority-strength';
+    const dotClass = row.priority === 'critical' ? 'dot-critical' : row.priority === 'watch' ? 'dot-watch' : 'dot-strength';
+    const pLabel = row.priority.charAt(0).toUpperCase() + row.priority.slice(1);
+    return `<tr>
+      <td style="font-weight:700;">${row.code}</td>
+      <td>${row.topic}</td>
+      <td>${row.boy}%</td>
+      <td>${row.q1}%</td>
+      <td>${row.q2}%</td>
+      <td>${row.mcasAvg}%</td>
+      <td>${row.mcas2025}%</td>
+      <td class="${pClass}"><span class="priority-dot ${dotClass}"></span>${pLabel}</td>
+      <td style="font-size:11px;color:#666;max-width:200px;">${row.note}</td>
+    </tr>`;
+  }).join('');
+}
+
+function showMcasTab(tab) {
+  document.querySelectorAll('.mcas-tab').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.mcas-tabs button').forEach(b => b.classList.remove('active'));
+  document.getElementById('mcas-' + tab).style.display = 'block';
+  event.target.classList.add('active');
+}
+
+// ===== INIT =====
+window.addEventListener('DOMContentLoaded', () => {
+  showPage('home');
+});
+</script>
+</body>
+</html>
