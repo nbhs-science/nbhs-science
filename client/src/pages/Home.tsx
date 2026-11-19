@@ -7,8 +7,8 @@
  */
 
 import { useState } from "react";
-import { plcSessions, departmentPDs, getSessionStatus, type PLCSession, type SessionStatus, type SlideDownload } from "@/lib/plcData";
-import Newsletters from "./Newsletters";
+import { plcSessions, departmentPDs, getSessionStatus, getEasternDateKey, type PLCSession, type SessionStatus, type SlideDownload } from "@/lib/plcData";
+import Newsletters, { type NewsletterSchoolYear } from "./Newsletters";
 import Curriculum from "./Curriculum";
 import { Calendar, Clock, Users, BookOpen, Download, ExternalLink, ChevronRight, ChevronLeft, FileText, Presentation, ClipboardList, FolderOpen, GraduationCap, BookMarked, Layers, Shield, FlaskConical, Network } from "lucide-react";
 import LabSafety from "./LabSafety";
@@ -23,7 +23,7 @@ import BioConnect from "./BioConnect";
 // Mobile PLC drill-down step
 type MobilePLCStep = "dates" | "sessions" | "detail";
 
-type SchoolYear = "2026-27" | "2025-26";
+type SchoolYear = NewsletterSchoolYear;
 type MainView = "current-year" | "archive-overview" | "plc" | "teachers" | "pathway" | "dept-pd" | "newsletters" | "curriculum" | "our-dept" | "lab-safety" | "mcas-prep" | "internship" | "bioconnect";
 
 type TabType = "agenda" | "facilitator" | "slides" | "resources";
@@ -54,9 +54,24 @@ function CurrentYearWorkspace({ onNavigate }: { onNavigate: (view: MainView) => 
     { title: "Department Home", description: "Department priorities, leadership information, and shared science-team updates.", view: "our-dept", icon: <Users size={20} />, color: "#B30000" },
     { title: "Teacher Directory", description: "Science Department staff information and a quick reference for collaboration.", view: "teachers", icon: <GraduationCap size={20} />, color: "#1A1A1A" },
     { title: "Course Pathway", description: "2026–27 course offerings and the science learning pathway for students and families.", view: "pathway", icon: <BookMarked size={20} />, color: "#1A1A1A" },
+    { title: "MCAS & Assessment", description: "2026 MCAS results plus 2026–27 Biology, Chemistry, Pre-AP Chemistry, and Environmental Science BOY benchmark data, standards analysis, and instructional response planning.", view: "mcas-prep", icon: <GraduationCap size={20} />, color: "#B30000" },
+    { title: "Weekly Newsletters", description: "Current 2026–27 Science Team Weekly Newsletters, including PLC learning, classroom spotlights, and Science Corner features.", view: "newsletters", icon: <FileText size={20} />, color: "#B30000" },
     { title: "Lab Safety", description: "Core safety expectations, procedures, and resources for science instruction.", view: "lab-safety", icon: <Shield size={20} />, color: "#1A1A1A" },
   ];
-  const currentYearPLCs = sessionsForSchoolYear("2026-27");
+  // The hub shows the next live work in the PLC sequence. Completed sessions remain
+  // available in PLC Sessions, where their date-aware Completed badge is retained.
+  const currentYearPLCs = sessionsForSchoolYear("2026-27")
+    .filter((session) => !session.isHoliday)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const activePLCs = currentYearPLCs.filter((session) => getSessionStatus(session.date) !== "completed");
+  const displayedPLCs = (activePLCs.length > 0 ? activePLCs : currentYearPLCs.slice(-4)).slice(0, 4);
+  const plcSeriesHeading = activePLCs.length > 0 ? "Upcoming PLC Series" : "Most Recent PLC Series";
+  const todayKey = getEasternDateKey();
+  const currentYearPDs = departmentPDs
+    .filter((pd) => pd.date >= "2026-08-01" && pd.date <= "2027-07-31")
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const featuredPD = currentYearPDs.find((pd) => pd.date >= todayKey) ?? currentYearPDs.at(-1);
+  const featuredPDStatus = featuredPD?.date === todayKey ? "Today" : featuredPD && featuredPD.date < todayKey ? "Completed" : "Upcoming";
 
   return (
     <div className="flex-1 bg-white overflow-y-auto">
@@ -108,33 +123,38 @@ function CurrentYearWorkspace({ onNavigate }: { onNavigate: (view: MainView) => 
           ))}
         </div>
 
-        <section className="mt-7 border" style={{ borderColor: "#E0E0E0" }}>
+        {featuredPD && <section className="mt-7 border" style={{ borderColor: "#E0E0E0" }}>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-5 md:p-6" style={{ backgroundColor: "#FAFAFA" }}>
             <div>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><div className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: "#B30000" }}>District Professional Learning · Thursday, August 27, 2026</div><WorkspaceStatus label="Today" tone="red" /></div>
-              <h2 className="text-[19px] font-black leading-snug mb-2" style={{ fontFamily: "'Work Sans', sans-serif", color: "#1A1A1A" }}>Instructional Coherence, Consistency, and Planning for Learning</h2>
-              <p className="max-w-3xl text-[13px] leading-relaxed" style={{ fontFamily: "'Inter', sans-serif", color: "#555" }}>Science educators will use the three levers of consistency and the Planning for Learning Crosswalk to prepare standards-aligned learning for the opening weeks of school.</p>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2"><div className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: "#B30000" }}>Department Professional Learning · {featuredPD.displayDate}</div><WorkspaceStatus label={featuredPDStatus} tone={featuredPDStatus === "Completed" ? "green" : "red"} /></div>
+              <h2 className="text-[19px] font-black leading-snug mb-2" style={{ fontFamily: "'Work Sans', sans-serif", color: "#1A1A1A" }}>{featuredPD.title}</h2>
+              <p className="max-w-3xl text-[13px] leading-relaxed" style={{ fontFamily: "'Inter', sans-serif", color: "#555" }}>{featuredPD.description}</p>
             </div>
             <button onClick={() => onNavigate("dept-pd")} className="flex-shrink-0 px-4 py-2.5 text-[11px] font-black uppercase tracking-wider text-white transition-opacity hover:opacity-90" style={{ backgroundColor: "#B30000" }}>View Session Details</button>
           </div>
-        </section>
+        </section>}
 
         <section className="mt-7 border" style={{ borderColor: "#E0E0E0" }}>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-5 md:px-6 py-4 border-b" style={{ borderColor: "#E0E0E0", backgroundColor: "#1A1A1A" }}>
-            <div className="flex items-center gap-3"><span className="h-px w-8" style={{ backgroundColor: "#B30000" }} /><div className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: "#FFFFFF" }}>Upcoming PLC Series</div></div>
+            <div className="flex items-center gap-3"><span className="h-px w-8" style={{ backgroundColor: "#B30000" }} /><div className="text-[10px] font-black uppercase tracking-[0.16em]" style={{ color: "#FFFFFF" }}>{plcSeriesHeading}</div></div>
             <WorkspaceStatus label="Current" tone="red" />
           </div>
-          <div className="grid md:grid-cols-3" style={{ borderColor: "#E0E0E0" }}>
-            {currentYearPLCs.map((session, index) => (
+          <div className={`grid md:grid-cols-2 ${displayedPLCs.length > 2 ? "xl:grid-cols-4" : ""}`} style={{ borderColor: "#E0E0E0" }}>
+            {displayedPLCs.map((session) => {
+              const status = getSessionStatus(session.date);
+              const statusTone = status === "completed" ? "green" : status === "today" || status === "next" ? "red" : "gray";
+              const statusLabel = status === "next" ? "Next" : status === "today" ? "Today" : status === "completed" ? "Completed" : "Scheduled";
+              return (
               <button key={session.id} onClick={() => onNavigate("plc")} className="text-left p-5 md:p-6 border-b md:border-b-0 md:border-r transition-colors hover:bg-[#FFF5F5]" style={{ borderColor: "#E0E0E0" }}>
-                <div className="flex items-center justify-between gap-2 mb-3"><div className="text-[10px] font-black uppercase tracking-[0.14em]" style={{ color: "#B30000" }}>{session.displayDate}</div><WorkspaceStatus label={index === 0 ? "Next" : "Scheduled"} tone={index === 0 ? "red" : "gray"} /></div>
+                <div className="flex items-center justify-between gap-2 mb-3"><div className="text-[10px] font-black uppercase tracking-[0.14em]" style={{ color: "#B30000" }}>{session.displayDate}</div><WorkspaceStatus label={statusLabel} tone={statusTone} /></div>
                 <h2 className="text-[16px] font-black leading-snug mb-2" style={{ fontFamily: "'Work Sans', sans-serif", color: "#1A1A1A" }}>{session.title}</h2>
                 <p className="text-[12px] leading-relaxed" style={{ fontFamily: "'Inter', sans-serif", color: "#666" }}>{session.subtitle}</p>
                 <div className="mt-4 flex items-center justify-between gap-2"><span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#555" }}>{session.duration}</span><span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#B30000" }}>View PLC →</span></div>
               </button>
-            ))}
+              );
+            })}
           </div>
-          <div className="px-5 md:px-6 py-3 flex items-center justify-between gap-3" style={{ backgroundColor: "#FAFAFA" }}><p className="text-[12px]" style={{ fontFamily: "'Inter', sans-serif", color: "#555" }}>All three sessions use the same Lesson Internalization Tool and build one upcoming lesson plan across the week.</p><button onClick={() => onNavigate("plc")} className="flex-shrink-0 text-[10px] font-black uppercase tracking-widest" style={{ color: "#B30000" }}>Open PLC Series →</button></div>
+          <div className="px-5 md:px-6 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3" style={{ backgroundColor: "#FAFAFA" }}><p className="text-[12px] leading-relaxed" style={{ fontFamily: "'Inter', sans-serif", color: "#555" }}>November 16–20 PLC Cycle: Monday, review one upcoming lesson and select a revision. Tuesday, test the actual student task and plan responses. Friday, study authentic classroom evidence and choose one next instructional step. The cycle overview and planning tools are in the Resources tab. The next department PD, Strengthening Science Literacy Through Close Reading: Building Deeper Understanding, Analyzing Textual Evidence, and Supporting Meaningful Student Discussion, is Wednesday, December 2, 2:30–3:30 p.m.</p><button onClick={() => onNavigate("plc")} className="flex-shrink-0 text-[10px] font-black uppercase tracking-widest" style={{ color: "#B30000" }}>Open PLC Series →</button></div>
         </section>
 
         <section className="mt-7 p-5 md:p-6 border-l-4" style={{ borderColor: "#1A1A1A", backgroundColor: "#F4F4F4" }}>
@@ -189,8 +209,9 @@ function ArchiveOverview({ onNavigate }: { onNavigate: (view: MainView) => void 
 function StatusBadge({ status }: { status: SessionStatus }) {
   const config = {
     completed: { label: "Completed", bg: "#2D6A4F", color: "#FFFFFF" },
-    upcoming: { label: "Upcoming", bg: "#B30000", color: "#FFFFFF" },
     today: { label: "Today", bg: "#D4A017", color: "#FFFFFF" },
+    next: { label: "Next", bg: "#B30000", color: "#FFFFFF" },
+    scheduled: { label: "Scheduled", bg: "#666666", color: "#FFFFFF" },
   }[status];
   return (
     <span
@@ -546,7 +567,15 @@ function ResourcesTab({ session }: { session: PLCSession }) {
       <div className="flex flex-col gap-3">
         {resources.map((resource, i) => {
           const isSlides = resource.type === "slides";
-          const downloadLabel = isSlides ? "Download PowerPoint (.pptx)" : "Download PDF";
+          const downloadLabel = isSlides
+            ? "Download PowerPoint (.pptx)"
+            : resource.type === "doc"
+              ? "Download Word Form (.docx)"
+              : resource.type === "video"
+                ? "Open Video"
+                : resource.type === "archive"
+                  ? "Download Planning Packet (.zip)"
+                : "Download PDF";
           const bgColor = isSlides ? "#1A1A1A" : "#B30000";
           const borderColor = isSlides ? "#555555" : "#B30000";
           return (
@@ -688,7 +717,10 @@ function SessionDetail({ session }: { session: PLCSession }) {
 
 export default function Home() {
   const [schoolYear, setSchoolYear] = useState<SchoolYear>("2026-27");
-  const [selectedId, setSelectedId] = useState<string>("plc-2026-08-31-purpose-mastery");
+  const [selectedId, setSelectedId] = useState<string>(() => {
+    const sessions = sessionsForSchoolYear("2026-27").filter((session) => !session.isHoliday).sort((a, b) => a.date.localeCompare(b.date));
+    return sessions.find((session) => session.date >= getEasternDateKey())?.id ?? sessions[sessions.length - 1]?.id ?? plcSessions[0].id;
+  });
   const [mainView, setMainView] = useState<MainView>("current-year");
   const activeYearSessions = sessionsForSchoolYear(schoolYear);
   const selectedSession = activeYearSessions.find((s) => s.id === selectedId) ?? activeYearSessions[0] ?? plcSessions[0];
@@ -732,6 +764,8 @@ export default function Home() {
     { id: "teachers", label: "Teacher Directory", shortLabel: "Teachers", icon: <GraduationCap size={15} /> },
     { id: "pathway", label: "Course Pathway", shortLabel: "Courses", icon: <BookMarked size={15} /> },
     { id: "dept-pd", label: "Department PD", shortLabel: "PD", icon: <Layers size={15} /> },
+    { id: "newsletters", label: "Newsletters", shortLabel: "News", icon: <FileText size={15} /> },
+    { id: "mcas-prep", label: "MCAS & Assessment", shortLabel: "MCAS", icon: <GraduationCap size={15} /> },
     { id: "lab-safety", label: "Lab Safety", shortLabel: "Safety", icon: <Shield size={15} /> },
   ];
 
@@ -917,11 +951,13 @@ export default function Home() {
               <div className="divide-y" style={{ borderColor: "#F0F0F0" }}>
                 {Object.entries(sessionsByDate).map(([date, sessions]) => {
                   const status = getSessionStatus(date);
-                  const statusConfig = {
+                  const statusConfigs: Record<SessionStatus, { label: string; bg: string; color: string }> = {
                     completed: { label: "Completed", bg: "#2D6A4F", color: "#FFFFFF" },
-                    upcoming: { label: "Upcoming", bg: "#B30000", color: "#FFFFFF" },
                     today: { label: "Today", bg: "#D4A017", color: "#FFFFFF" },
-                  }[status];
+                    next: { label: "Next", bg: "#B30000", color: "#FFFFFF" },
+                    scheduled: { label: "Scheduled", bg: "#666666", color: "#FFFFFF" },
+                  };
+                  const statusConfig = statusConfigs[status];
                   return (
                     <button
                       key={date}
@@ -1033,10 +1069,10 @@ export default function Home() {
           {mainView === "teachers" && <TeacherDirectory />}
           {mainView === "pathway" && <CoursePathway />}
           {mainView === "dept-pd" && <DepartmentPDPage key={schoolYear} schoolYear={schoolYear} />}
-          {mainView === "newsletters" && <Newsletters />}
+          {mainView === "newsletters" && <Newsletters schoolYear={schoolYear} />}
           {mainView === "curriculum" && <Curriculum />}
            {mainView === "lab-safety" && <LabSafety />}
-          {mainView === "mcas-prep" && <MCASPrep />}
+          {mainView === "mcas-prep" && <MCASPrep key={schoolYear} schoolYear={schoolYear} />}
           {mainView === "internship" && <Internship onBioConnect={() => setMainView("bioconnect")} />}
           {mainView === "bioconnect" && <BioConnect />}
         </div>
@@ -1084,10 +1120,10 @@ export default function Home() {
         {mainView === "teachers" && <TeacherDirectory />}
         {mainView === "pathway" && <CoursePathway />}
         {mainView === "dept-pd" && <DepartmentPDPage key={schoolYear} schoolYear={schoolYear} />}
-        {mainView === "newsletters" && <Newsletters />}
+        {mainView === "newsletters" && <Newsletters schoolYear={schoolYear} />}
         {mainView === "curriculum" && <Curriculum />}
         {mainView === "lab-safety" && <LabSafety />}
-        {mainView === "mcas-prep" && <MCASPrep />}
+        {mainView === "mcas-prep" && <MCASPrep key={schoolYear} schoolYear={schoolYear} />}
         {mainView === "internship" && <Internship onBioConnect={() => setMainView("bioconnect")} />}
         {mainView === "bioconnect" && <BioConnect />}
       </div>
