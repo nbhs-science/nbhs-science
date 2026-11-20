@@ -1,0 +1,141 @@
+[
+  {
+    "id": "plc-2026-11-23-success-criteria",
+    "date": "2026-11-23",
+    "displayDate": "Monday, November 23, 2026",
+    "title": "Make Success Criteria Useful to Students",
+    "subtitle": "One criterion, a student self-check, and a revision opportunity",
+    "duration": "46 Minutes",
+    "audience": "Grades 9–12 Science Teachers — All Science Courses",
+    "alignment": "Pre-Lesson Sharing; Lesson Internalization Tool: after-lesson reflection and Deep Dives 1–3",
+    "objectives": [
+      "Select one useful content or disciplinary-reasoning criterion and identify the targeted language demand.",
+      "Use colleague questions to strengthen an exemplar and a student self-check.",
+      "Embed a student self-check and revision opportunity in the existing lesson plan and identify evidence to collect."
+    ],
+    "whatToBring": [
+      "An existing upcoming lesson, student task, exemplar, and success criteria",
+      "Actual November 20 evidence and the selected next step, if available"
+    ],
+    "agenda": [
+      {"time":"0:00","duration":"4 min","activity":"Reconnect to the Next Step","description":"Use actual November 20 evidence and the selected adjustment, if available. Name the actual lesson, evidence source, and learning need carried forward.","lead":"all","slides":"Slides 1–2"},
+      {"time":"4:00","duration":"6 min","activity":"Choose One Useful Criterion","description":"Select one criterion and the language demand. Name relevant student assets, prior knowledge or home-language resources, and an access need.","lead":"all","slides":"Slide 3"},
+      {"time":"10:00","duration":"18 min","activity":"Pre-Lesson Sharing: Strengthen the Plan","description":"Pairs use two 9-minute turns: 2 minutes to share the teaching and learning focus, 4 to examine the task, exemplar, and self-check, and 3 to choose one change. Triads use three 6-minute turns: 1 to share, 3 for questions, and 2 to decide.","lead":"all","slides":"Slide 4"},
+      {"time":"28:00","duration":"12 min","activity":"Write and Rehearse the Student Self-Check","description":"Students find evidence of the criterion, name what is present or missing, revise one part, and explain why the revision better meets the criterion. Select access supports without giving away the reasoning.","lead":"all","slides":"Slide 5"},
+      {"time":"40:00","duration":"6 min","activity":"Commit and Carry the Same Plan to Tuesday","description":"Record the chosen change, teaching date, criterion, and collection plan for 3–5 students’ actual initial and revised samples and support-use notes.","lead":"all","slides":"Slide 6"}
+    ],
+    "facilitatorNotes": [
+      {"slide":"Reconnect and Select a Criterion","role":"all","note":"Use actual prior evidence when available. A useful criterion makes the intended content or disciplinary reasoning visible to students."},
+      {"slide":"Pre-Lesson Sharing","role":"all","note":"Protect two 9-minute turns in pairs or three 6-minute turns in triads. Colleagues offer questions and options; the teacher chooses the change."},
+      {"slide":"Self-Check and Commitment","role":"all","note":"Keep required accommodations, language supports, modeling, and safety in place. Record the self-check, revision opportunity, teaching date, and collection plan in the existing lesson."}
+    ],
+    "slidesUrl": "",
+    "slidesDownloadUrl": "assets/plc/2026-11-23_PLC_Slides_Success_Criteria.pptx",
+    "slidesDownloads": [{"label":"November 23 PLC — Editable PowerPoint","filename":"2026-11-23_PLC_Slides_Success_Criteria.pptx","url":"assets/plc/2026-11-23_PLC_Slides_Success_Criteria.pptx","type":"pptx"}],
+    "agendaPdf": {"label":"November 23 PLC — Printable Agenda","filename":"2026-11-23_PLC_Agenda_Success_Criteria.pdf","url":"assets/plc/2026-11-23_PLC_Agenda_Success_Criteria.pdf","type":"pdf"},
+    "agendaVersion": "Both",
+    "resources": [
+      {"title":"Lesson Internalization Tool (2026–27)","description":"Use the existing planning and reflection tool to connect the criterion, student assets, access, and evidence.","url":"assets/plc/LessonInternalizationTool_2026-27.pdf","type":"pdf"},
+      {"title":"Pre-Lesson Sharing Guide","description":"Structure supportive colleague questions about the lesson, task, criterion, and self-check.","url":"assets/plc/PLC_Pre_Lesson_Sharing.pdf","type":"pdf"},
+      {"title":"November 23–30 PLC Materials — Complete ZIP","description":"Download the three updated PowerPoint decks and their three one-page agendas together.","url":"assets/plc/NBHS_Science_PLC_November_2026_Materials.zip","type":"archive"}
+    ],
+    "sessionInfo": {
+      "overview":"Teachers bring an existing lesson and use available evidence from the previous cycle to select one criterion that students can find in their own work. In pairs or triads, colleagues examine the task, exemplar, and self-check. Each teacher chooses one feasible change.\n\nThe session closes with a student self-check and revision opportunity, a teaching date, and a plan to collect initial and revised work and notes on supports used.",
+      "whyItMatters":"A clear, usable criterion helps students locate evidence of their own reasoning and make a purposeful revision without reducing grade-level demand.",
+      "learningArc":"November 23 develops a self-check; November 24 plans feedback, revision, and a fresh individual check; November 30 reviews available evidence and selects a next step.",
+      "teacherTakeaways":["One student-facing success criterion and self-check.","A revision opportunity built into the existing lesson.","A dated plan for collecting authentic student evidence."]
+    }
+  },
+  {
+    "id": "plc-2026-11-24-feedback-revision-check",
+    "date": "2026-11-24",
+    "displayDate": "Tuesday, November 24, 2026",
+    "title": "Plan Feedback, Revision, and an Independent Check",
+    "subtitle": "Rehearse feedback and prepare a fresh task that checks the same reasoning",
+    "duration": "46 Minutes",
+    "audience": "Grades 9–12 Science Teachers — All Science Courses",
+    "alignment": "Pre-Lesson Sharing; Lesson Internalization Tool: Every Day Q3–Q4 and Deep Dives 4–5",
+    "objectives": [
+      "Continue with the same criterion and student self-check from November 23.",
+      "Rehearse concise feedback that returns the thinking to the student and identifies what will be revised.",
+      "Prepare a short new comparable individual check and a realistic teaching and evidence plan."
+    ],
+    "whatToBring": ["Monday’s revised lesson plan and task", "The criterion, exemplar, and student self-check"],
+    "agenda": [
+      {"time":"0:00","duration":"4 min","activity":"Keep Monday’s Focus","description":"Return to the same criterion and self-check. If the lesson was taught before the PLC, use an actual response to plan the next opportunity.","lead":"all","slides":"Slides 1–2"},
+      {"time":"4:00","duration":"6 min","activity":"Specify Revision and a Fresh Task","description":"Name what students will revise after feedback. Draft a fresh task with changed data, model, or context that checks the same reasoning at the same demand.","lead":"all","slides":"Slide 3"},
+      {"time":"10:00","duration":"18 min","activity":"Rehearse Feedback That Returns the Thinking","description":"Pairs use two 9-minute turns: 2 minutes to explain the task, 4 to rehearse feedback and the self-check with a colleague acting as a student, and 3 to revise the plan. Triads use three 6-minute turns.","lead":"all","slides":"Slide 4"},
+      {"time":"28:00","duration":"12 min","activity":"Finalize the Individual Check and Access Plan","description":"Prepare the fresh check, exemplar, and criterion. Students apply the criterion individually without an additional corrective teacher prompt while required supports remain available.","lead":"all","slides":"Slide 5"},
+      {"time":"40:00","duration":"6 min","activity":"Set a Realistic Teaching and Evidence Plan","description":"Record the teaching date and plan to bring available deidentified initial, revised, and new-check responses plus notes on supports and prompts used. There is no PLC during Thanksgiving recess, November 25–27.","lead":"all","slides":"Slide 6"}
+    ],
+    "facilitatorNotes": [
+      {"slide":"Keep the Same Criterion","role":"all","note":"The fresh task changes the data, model, or context but checks the same reasoning at the same level of demand."},
+      {"slide":"Rehearse Feedback","role":"all","note":"Protect two 9-minute turns in pairs or three 6-minute turns in triads. Feedback should help students decide what to revise without giving them the answer."},
+      {"slide":"Independent Check and Evidence Plan","role":"all","note":"Independent reasoning does not mean removing required accommodations, language supports, modeling, or safety. Set a realistic teaching date before or after recess."}
+    ],
+    "slidesUrl": "",
+    "slidesDownloadUrl": "assets/plc/2026-11-24_PLC_Slides_Feedback_and_Independent_Check.pptx",
+    "slidesDownloads": [{"label":"November 24 PLC — Editable PowerPoint","filename":"2026-11-24_PLC_Slides_Feedback_and_Independent_Check.pptx","url":"assets/plc/2026-11-24_PLC_Slides_Feedback_and_Independent_Check.pptx","type":"pptx"}],
+    "agendaPdf": {"label":"November 24 PLC — Printable Agenda","filename":"2026-11-24_PLC_Agenda_Feedback_and_Independent_Check.pdf","url":"assets/plc/2026-11-24_PLC_Agenda_Feedback_and_Independent_Check.pdf","type":"pdf"},
+    "agendaVersion": "Both",
+    "resources": [
+      {"title":"Lesson Internalization Tool (2026–27)","description":"Use the existing lesson plan to anticipate student responses, supports, pacing, and materials.","url":"assets/plc/LessonInternalizationTool_2026-27.pdf","type":"pdf"},
+      {"title":"Pre-Lesson Sharing Guide","description":"Use colleague questions and rehearsal to refine the same lesson before teaching.","url":"assets/plc/PLC_Pre_Lesson_Sharing.pdf","type":"pdf"},
+      {"title":"November 23–30 PLC Materials — Complete ZIP","description":"Download the three updated PowerPoint decks and their three one-page agendas together.","url":"assets/plc/NBHS_Science_PLC_November_2026_Materials.zip","type":"archive"}
+    ],
+    "sessionInfo": {
+      "overview":"Teachers continue the lesson and criterion from November 23. They identify what students will revise, rehearse feedback and the self-check with colleagues, and create a fresh comparable task that checks the same reasoning.\n\nThe plan preserves required supports and sets a realistic teaching date and evidence-collection plan before or after the Thanksgiving recess.",
+      "whyItMatters":"A fresh task can reveal whether students can apply the criterion individually, while purposeful feedback gives them an opportunity to revise their initial thinking.",
+      "learningArc":"November 23 develops a self-check; November 24 plans feedback, revision, and a fresh individual check; November 30 reviews available evidence and selects a next step.",
+      "teacherTakeaways":["A rehearsed feedback-to-revision routine.","A short fresh task checking the same criterion and reasoning.","A teaching date and a realistic evidence-collection plan."]
+    }
+  },
+  {
+    "id": "plc-2026-11-30-independent-reasoning",
+    "date": "2026-11-30",
+    "displayDate": "Monday, November 30, 2026",
+    "title": "Review What Students Can Explain Independently",
+    "subtitle": "Read actual evidence, identify its limits, and choose one next move",
+    "duration": "46 Minutes",
+    "audience": "Grades 9–12 Science Teachers — All Science Courses",
+    "alignment": "Post-Lesson Sharing; Lesson Internalization Tool: after-lesson reflection, Every Day Q1 and Q3–Q4, and Deep Dives 4–5",
+    "objectives": [
+      "Identify the lesson actually taught, the common criterion, and supports or prompts used.",
+      "Read available initial, revised, and new-check responses for evidence of student reasoning before interpreting patterns.",
+      "Choose one evidence-based instructional adjustment, a follow-up check, and a revisit date while naming uncertainty."
+    ],
+    "whatToBring": [
+      "The task and criterion",
+      "Three to five students’ deidentified initial, revised, and independent-check responses, if available",
+      "Notes on supports and prompts actually used"
+    ],
+    "agenda": [
+      {"time":"0:00","duration":"4 min","activity":"Identify the Actual Implementation","description":"Name the teaching date and task, the same criterion, and the supports or prompts actually used. Distinguish what was planned from what was taught.","lead":"all","slides":"Slides 1–2"},
+      {"time":"4:00","duration":"6 min","activity":"Read Evidence Before Interpreting","description":"Silently read available initial, revised, and new-check work against the criterion. Locate evidence of disciplinary reasoning and language use and note gaps in the evidence set.","lead":"all","slides":"Slide 3"},
+      {"time":"10:00","duration":"18 min","activity":"Post-Lesson Sharing: Evidence, Then Response","description":"Pairs use two 9-minute turns: 2 minutes for what happened, 4 for what the evidence tells, and 3 for the teacher to choose what is next. Triads use three 6-minute turns: 1 minute context, 3 evidence, and 2 next step.","lead":"all","slides":"Slides 4–5"},
+      {"time":"28:00","duration":"12 min","activity":"Revise the Next Lesson","description":"Keep a useful support. Select targeted re-engagement, an access adjustment, or an extension tied to the evidence; plan a follow-up check of the same learning need.","lead":"all","slides":"Slide 6"},
+      {"time":"40:00","duration":"6 min","activity":"Commit to a Next Action and Revisit","description":"Record one action, when it will occur, evidence that will check its effect, and a revisit date. State what the samples support and what remains uncertain.","lead":"all","slides":"Slide 6"}
+    ],
+    "facilitatorNotes": [
+      {"slide":"What Happened","role":"all","note":"Identify actual implementation and supports rather than treating a planned routine as completed."},
+      {"slide":"Evidence and Interpretation","role":"all","note":"Describe specific samples before drawing conclusions. Completion is not mastery, revision is not independent transfer, and 3–5 samples cannot establish classwide mastery."},
+      {"slide":"What Is Next","role":"all","note":"If evidence is insufficient, mark the new routine untested, use actual recent work to refine the plan, teach after recess, and set a later evidence review. Never invent evidence. Retain required supports and accommodations."}
+    ],
+    "slidesUrl": "",
+    "slidesDownloadUrl": "assets/plc/2026-11-30_PLC_Slides_Independent_Reasoning.pptx",
+    "slidesDownloads": [{"label":"November 30 PLC — Editable PowerPoint","filename":"2026-11-30_PLC_Slides_Independent_Reasoning.pptx","url":"assets/plc/2026-11-30_PLC_Slides_Independent_Reasoning.pptx","type":"pptx"}],
+    "agendaPdf": {"label":"November 30 PLC — Printable Agenda","filename":"2026-11-30_PLC_Agenda_Independent_Reasoning.pdf","url":"assets/plc/2026-11-30_PLC_Agenda_Independent_Reasoning.pdf","type":"pdf"},
+    "agendaVersion": "Both",
+    "resources": [
+      {"title":"Lesson Internalization Tool (2026–27)","description":"Connect after-lesson reflection and forward planning to the same learning need and a follow-up check.","url":"assets/plc/LessonInternalizationTool_2026-27.pdf","type":"pdf"},
+      {"title":"Post-Lesson Sharing Guide","description":"Structure a supportive conversation about what happened, what the evidence shows, and what comes next.","url":"assets/plc/PLC_Post_Lesson_Sharing.pdf","type":"pdf"},
+      {"title":"November 23–30 PLC Materials — Complete ZIP","description":"Download the three updated PowerPoint decks and their three one-page agendas together.","url":"assets/plc/NBHS_Science_PLC_November_2026_Materials.zip","type":"archive"}
+    ],
+    "sessionInfo": {
+      "overview":"Teachers identify the lesson actually taught and review available initial, revised, and new-check work against the same criterion. Pairs or triads describe what happened, cite evidence, and consider a next step before the teacher chooses a response.\n\nIf the planned routine has not been taught or evidence is insufficient, teachers use actual recent work to refine the plan, mark the routine untested, and set a later review.",
+      "whyItMatters":"Comparing actual work helps reveal a learning pattern, but revision is not the same as independent transfer and a few samples cannot establish classwide mastery.",
+      "learningArc":"November 23 develops a self-check; November 24 plans feedback, revision, and a fresh individual check; November 30 reviews available evidence and selects a next step.",
+      "teacherTakeaways":["An evidence-based conclusion with its limits stated.","One instructional response with required supports preserved.","A follow-up check and revisit date."]
+    }
+  }
+]

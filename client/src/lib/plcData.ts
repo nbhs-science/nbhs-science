@@ -1,6 +1,8 @@
 // NBHS Science Department PLC Dashboard
 // Design: Command Center Dashboard — Work Sans + Merriweather, NBHS Red (#B30000), Dark sidebar
 
+import lateNovember2026 from "./lateNovember2026.json";
+
 export type Role = "me" | "gilbert" | "mccauley" | "gagnon" | "gifford" | "all";
 
 export interface AgendaItem {
@@ -3848,6 +3850,9 @@ export const plcSessions: PLCSession[] = [
   },
 
 ];
+
+// These records and the published bundle are generated from the same session data.
+plcSessions.push(...(lateNovember2026 as PLCSession[]));
 
 for (const session of plcSessions) {
   if (["2026-11-16", "2026-11-17", "2026-11-20"].includes(session.date)) {

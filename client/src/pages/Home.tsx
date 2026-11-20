@@ -49,7 +49,7 @@ function WorkspaceStatus({ label, tone = "red" }: { label: string; tone?: "red" 
   );
 }
 
-function CurrentYearWorkspace({ onNavigate }: { onNavigate: (view: MainView) => void }) {
+function CurrentYearWorkspace({ onNavigate }: { onNavigate: (view: MainView, sessionId?: string) => void }) {
   const resources: { title: string; description: string; view: MainView; icon: React.ReactNode; color: string }[] = [
     { title: "Department Home", description: "Department priorities, leadership information, and shared science-team updates.", view: "our-dept", icon: <Users size={20} />, color: "#B30000" },
     { title: "Teacher Directory", description: "Science Department staff information and a quick reference for collaboration.", view: "teachers", icon: <GraduationCap size={20} />, color: "#1A1A1A" },
@@ -145,7 +145,7 @@ function CurrentYearWorkspace({ onNavigate }: { onNavigate: (view: MainView) => 
               const statusTone = status === "completed" ? "green" : status === "today" || status === "next" ? "red" : "gray";
               const statusLabel = status === "next" ? "Next" : status === "today" ? "Today" : status === "completed" ? "Completed" : "Scheduled";
               return (
-              <button key={session.id} onClick={() => onNavigate("plc")} className="text-left p-5 md:p-6 border-b md:border-b-0 md:border-r transition-colors hover:bg-[#FFF5F5]" style={{ borderColor: "#E0E0E0" }}>
+              <button key={session.id} onClick={() => onNavigate("plc", session.id)} className="text-left p-5 md:p-6 border-b md:border-b-0 md:border-r transition-colors hover:bg-[#FFF5F5]" style={{ borderColor: "#E0E0E0" }}>
                 <div className="flex items-center justify-between gap-2 mb-3"><div className="text-[10px] font-black uppercase tracking-[0.14em]" style={{ color: "#B30000" }}>{session.displayDate}</div><WorkspaceStatus label={statusLabel} tone={statusTone} /></div>
                 <h2 className="text-[16px] font-black leading-snug mb-2" style={{ fontFamily: "'Work Sans', sans-serif", color: "#1A1A1A" }}>{session.title}</h2>
                 <p className="text-[12px] leading-relaxed" style={{ fontFamily: "'Inter', sans-serif", color: "#666" }}>{session.subtitle}</p>
@@ -154,7 +154,7 @@ function CurrentYearWorkspace({ onNavigate }: { onNavigate: (view: MainView) => 
               );
             })}
           </div>
-          <div className="px-5 md:px-6 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3" style={{ backgroundColor: "#FAFAFA" }}><p className="text-[12px] leading-relaxed" style={{ fontFamily: "'Inter', sans-serif", color: "#555" }}>November 16–20 PLC Cycle: Monday, review one upcoming lesson and select a revision. Tuesday, test the actual student task and plan responses. Friday, study authentic classroom evidence and choose one next instructional step. The cycle overview and planning tools are in the Resources tab. The next department PD, Strengthening Science Literacy Through Close Reading: Building Deeper Understanding, Analyzing Textual Evidence, and Supporting Meaningful Student Discussion, is Wednesday, December 2, 2:30–3:30 p.m.</p><button onClick={() => onNavigate("plc")} className="flex-shrink-0 text-[10px] font-black uppercase tracking-widest" style={{ color: "#B30000" }}>Open PLC Series →</button></div>
+          <div className="px-5 md:px-6 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3" style={{ backgroundColor: "#FAFAFA" }}><p className="text-[12px] leading-relaxed" style={{ fontFamily: "'Inter', sans-serif", color: "#555" }}>November 23–30 PLC Cycle: develop a student self-check, plan feedback and a fresh individual check, then review available evidence and choose a next step. There is no PLC during Thanksgiving recess, November 25–27. The next department PD, Strengthening Science Literacy Through Close Reading: Building Deeper Understanding, Analyzing Textual Evidence, and Supporting Meaningful Student Discussion, is Wednesday, December 2, 2:30–3:30 p.m.</p><button onClick={() => onNavigate("plc")} className="flex-shrink-0 text-[10px] font-black uppercase tracking-widest" style={{ color: "#B30000" }}>Open PLC Series →</button></div>
         </section>
 
         <section className="mt-7 p-5 md:p-6 border-l-4" style={{ borderColor: "#1A1A1A", backgroundColor: "#F4F4F4" }}>
@@ -738,6 +738,18 @@ export default function Home() {
     }
   };
 
+  const handleWorkspaceNav = (view: MainView, sessionId?: string) => {
+    if (view === "plc" && sessionId) {
+      const session = activeYearSessions.find((item) => item.id === sessionId);
+      if (session) {
+        setSelectedId(session.id);
+        setMobileSelectedDate(session.date);
+        setMobilePLCStep("detail");
+      }
+    }
+    handleMobileNavChange(view);
+  };
+
   const handleYearChange = (year: SchoolYear) => {
     setSchoolYear(year);
     setMainView(year === "2026-27" ? "current-year" : "archive-overview");
@@ -1063,7 +1075,7 @@ export default function Home() {
             </div>
           )}
 
-          {mainView === "current-year" && <CurrentYearWorkspace onNavigate={handleMobileNavChange} />}
+          {mainView === "current-year" && <CurrentYearWorkspace onNavigate={handleWorkspaceNav} />}
           {mainView === "archive-overview" && <ArchiveOverview onNavigate={handleMobileNavChange} />}
           {mainView === "our-dept" && <OurDepartment />}
           {mainView === "teachers" && <TeacherDirectory />}
@@ -1079,7 +1091,7 @@ export default function Home() {
       </div>
       {/* Desktop Main Content */}
       <div className="hidden md:flex flex-col flex-1 bg-white">
-        {mainView === "current-year" && <CurrentYearWorkspace onNavigate={setMainView} />}
+        {mainView === "current-year" && <CurrentYearWorkspace onNavigate={handleWorkspaceNav} />}
         {mainView === "archive-overview" && <ArchiveOverview onNavigate={setMainView} />}
         {mainView === "our-dept" && <OurDepartment />}
         {mainView === "plc" && (
